@@ -3,9 +3,9 @@ import requests
 import json
 from datetime import datetime
 
-app = Flask(__name__)
+app = Flask(__name__) 
 
-# ---------------------------------------
+# --------------------------------------- 
 # ADMIN EMOTION
 # ---------------------------------------
 admin_emotion = "angry"
@@ -61,7 +61,7 @@ def ask_ollama(prompt):
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
-    user_input = data.get("message", "")
+    user_input = data.get("message", "")  
 
     bot_reply = ask_ollama(user_input)
 

@@ -104,3 +104,4 @@ def detect_emotion():
 if __name__ == "__main__":
     # IMPORTANT — Match frontend port (5000)
     app.run(host="127.0.0.1", port=5001, debug=True)
+ 

@@ -6,6 +6,10 @@ import base64
 
 app = Flask(__name__)
 
+@app.route('/')
+def home():
+    return "Emotion detection api is running"
+
 @app.route('/detect', methods=['POST'])
 def detect_emotion():
     """

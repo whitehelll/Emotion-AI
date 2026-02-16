@@ -17,7 +17,7 @@ connectDB();
 app.use(express.json({ limit: "10mb" }));
 
 app.use(cors({
-  origin: "http://localhost:3001",   // React frontend
+  origin: "http://localhost:3000",   // React frontend
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]
 }));

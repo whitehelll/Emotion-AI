@@ -25,6 +25,10 @@ Thumbs.db
 .vscode/
 .idea/
 
+
+#python model
+python_service/emotion_model.h5
+
 # Optional: lock files (if you don’t want to commit them)
 # package-lock.json
 # yarn.lock
