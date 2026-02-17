@@ -31,6 +31,7 @@ python_service/emotion_model.h5
 
 *.h5
 python_service/*.h5
+test_real2.py
 
 # Optional: lock files (if you don’t want to commit them)
 # package-lock.json
