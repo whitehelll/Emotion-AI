@@ -31,7 +31,7 @@ Respond in a helpful, emotional-aware tone.`,
 
     // 3. Call Ollama (local)
     const response = await axios.post(
-      "http://localhost:11434/api/chat",
+      "http://127.0.0.1:5001/",
       {
         model: "llama3",      // or llama3:8b, phi3, etc.
         messages: messages,

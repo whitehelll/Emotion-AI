@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-[#0c0c0e] text-white relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#0c0c0e] text-white overflow-hidden font-sans">
 
 
       {/* ---------------- MAIN HERO SECTION ---------------- */}
@@ -18,7 +18,7 @@ const Landing = () => {
           Deliver accurate, consistent designs faster
         </p>
 
-        <Link to="/chat" className="mt-10 px-8 py-3  px-4 py-2 bg-white text-black rounded-md text-sm font-semibold hover:bg-gray-200">Try Emotion Chatbot</Link>
+        <Link to="/chat" className="mt-10 px-8 py-2 bg-white text-black rounded-md text-sm font-semibold hover:bg-gray-200">Try Emotion Chatbot</Link>
 
         
       </div>

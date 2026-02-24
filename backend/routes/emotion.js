@@ -20,10 +20,10 @@ router.post("/emotion", async (req, res) => {
     return res.json(response.data);
 
   } catch (err) {
-    console.error("Error calling Python emotion API:", err.message);
+    console.error("Error calling Python face emotion API:", err.message);
 
     if (err.response) {
-      console.error("Python API responded:", err.response.data);
+      console.error("Python face API responded:", err.response.data);
     }
 
     return res.status(500).json({ error: "Emotion detection failed" });

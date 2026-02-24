@@ -3,8 +3,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const emotionRouter = require("./routes/emotion");   // ✔ fixed
-const chatRouter = require("./routes/chat");         // ✔ fixed
+const emotionRouter = require("./routes/emotion");   
+const chatRouter = require("./routes/chat");         
 
 const connectDB = require("./config/db");
 

@@ -15,9 +15,7 @@ const generateToken = (userId) => {
   );
 };
 
-// @route   POST /api/auth/register
-// @desc    Register user
-// @access  Public
+
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;

@@ -10,27 +10,36 @@ import Chatbot from "./pages/Chatbot";
 import Navbar from "./component/Navbar.js";
 import Contact from "./pages/Contact.js";
 
-
-
 function App() {
   return (
     <BrowserRouter>
-      <Navbar/>
-      <Routes>
-      
+  
+      <div className="h-screen flex flex-col overflow-hidden">
 
-        <Route path="/" element={<Landing />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/chatbot" element={<Chatbot />} />
-        <Route path="/contact" element={<Contact />} />
+        {/* Navbar fixed */}
+        <Navbar />
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-       
+        {/* Pages container */}
+        <div className="flex-1 overflow-hidden">
 
-      </Routes>
+          <Routes>
+
+            <Route path="/" element={<Landing />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/chatbot" element={<Chatbot />} />
+            <Route path="/contact" element={<Contact />} />
+
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+
+          </Routes>
+
+        </div>
+
+      </div>
+
     </BrowserRouter>
   );
 }
