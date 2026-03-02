@@ -22,7 +22,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-950 text-white px-6 md:px-12 py-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-950 text-white ">
       
       {/* ---------- HEADER ---------- */}
       <div className="text-center mb-14">

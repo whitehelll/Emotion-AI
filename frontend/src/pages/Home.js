@@ -10,8 +10,8 @@ const Home = () => {
       </p>
 
       <div className="flex gap-4 mt-8">
-        <Link to="/login" className="btn btn-primary">Login</Link>
-        <Link to="/signup" className="btn btn-secondary">Sign Up</Link>
+        <Link to="/chat" className="mt-10 px-8 py-2 bg-white text-black rounded-md text-sm font-semibold hover:bg-gray-200">Try Emotion Chatbot</Link>
+        <Link to="/dashboard" className="mt-10 px-8 py-2 bg-white text-black rounded-md text-sm font-semibold hover:bg-gray-200">Dashboard</Link>
       </div>
     </div>
   );

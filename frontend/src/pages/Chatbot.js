@@ -28,7 +28,7 @@ function Chatbot() {
     initCamera();
   }, []);
 
-  // Capture frame as base64
+  // Capture frame as base64iuytrewer
   const captureFrame = () => {
     if (!videoRef.current || !canvasRef.current) return null;
 

@@ -1,38 +1,124 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Home from "./pages/Home";
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-import Landing from "./pages/Landing";
-import About from "./pages/About";
+import Onboarding from "./pages/OnBoarding";
+import StartChat from "./pages/StartChat";
 import Chat from "./pages/Chat";
-import Chatbot from "./pages/Chatbot";
-import Navbar from "./component/Navbar.js";
-import Contact from "./pages/Contact.js";
+import DashboardLayout from "./component/DashboardLayout";
+import { useThemeStore } from "./store/useThemeStore.js";
+import Navbar from "./component/Navbar";
+import useAuthUser from "./hooks/useAuthUser";
+import Home from "./pages/Home";
+
+const App = () => {
+
+  const { isLoading, authUser } = useAuthUser();
+  const isOnboard = authUser?.isOnboard ?? false;
+  const { theme, setTheme } = useThemeStore();
 
 
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
-function App() {
+  const isAuthenticated = Boolean(authUser);
+  console.log(authUser);
+  
+
   return (
-    <BrowserRouter>
+
+    
+    <div className="h-screen " data-theme={theme}>
       <Navbar/>
       <Routes>
-      
+        {/* Landing */}
+        <Route path="/landing" element={<Landing />} />
 
-        <Route path="/" element={<Landing />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/chatbot" element={<Chatbot />} />
-        <Route path="/contact" element={<Contact />} />
+        {/* Home */}
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-       
+        <Route
+          path="/"
+          element={
+            isAuthenticated && isOnboard ? (
+              <Home />
+            ) : (
+              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+            )
+          }
+        />
 
+        {/* Login */}
+        <Route
+          path="/login"
+          element={
+            !isAuthenticated ? (
+              <Login />
+            ) : (
+              <Navigate to={isOnboard ? "/" : "/onboarding"} />
+            )
+          }
+        />
+
+        {/* Signup */}
+        <Route
+          path="/signup"
+          element={
+            !isAuthenticated ? (
+              <SignUp />
+            ) : (
+              <Navigate to={isOnboard ? "/" : "/onboarding"} />
+            )
+          }
+        />
+
+        {/* Onboarding */}
+        <Route
+          path="/onboarding"
+          element={
+            isAuthenticated ? (
+              !isOnboard ? (
+                <Onboarding />
+              ) : (
+                <Navigate to="/" />
+              )
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        {/* Start Page */}
+        <Route
+          path="/dashboard"
+          element={
+            isAuthenticated && isOnboard ? (
+              <DashboardLayout />
+            ) : (
+              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+            )
+          }
+        />
+
+        {/* Chat */}
+        <Route
+          path="/chat"
+          element={
+            isAuthenticated && isOnboard ? (
+              <Chat />
+            ) : (
+              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+            )
+          }
+        />
       </Routes>
-    </BrowserRouter>
+    </div>
   );
-}
+};
 
 export default App;

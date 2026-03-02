@@ -1,12 +1,16 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+
+import emotionRouter from "./routes/emotion.route.js";
+import chatRouter from "./routes/chat.route.js";
+import authRouter from "./routes/auth.route.js";
+import ollamaRouter from "./routes/ollamaChat.js";
+
+import connectDB from "./config/db.js";
+import cookieParser from "cookie-parser";
+
 dotenv.config();
-
-const emotionRouter = require("./routes/emotion");   // ✔ fixed
-const chatRouter = require("./routes/chat");         // ✔ fixed
-
-const connectDB = require("./config/db");
 
 const app = express();
 
@@ -17,27 +21,28 @@ connectDB();
 app.use(express.json({ limit: "10mb" }));
 
 app.use(cors({
-  origin: "http://localhost:3000",   // React frontend
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
+  origin: "http://localhost:3000", // React/Vite frontend
+  credentials: true
 }));
+app.use(cookieParser());
 
 // ---------- ROUTES ----------
-app.use("/api/auth", require("./routes/auth"));
+app.use("/api/auth", authRouter);
 app.use("/api", emotionRouter);
 app.use("/api", chatRouter);
-app.use("/api", require("./routes/ollamaChat"));
+app.use("/api", ollamaRouter);
 
 // ---------- HOME ROUTE ----------
 app.get("/", (req, res) => {
-  return res.json({
+  res.json({
     status: "OK",
-    message: "Emotion Chatbot Backend running"
+    message: "Emotion AI Backend running"
   });
 });
 
 // ---------- START SERVER ----------
 const PORT = process.env.PORT || 8080;
+
 app.listen(PORT, () => {
-  console.log(`Node Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
