@@ -68,11 +68,14 @@ const Chat = () => {
     try {
 
       const res = await axios.post(
-        "http://localhost:8080/api/ollama-chat",
+        "http://localhost:8080/api/chat",
         {
           message: userText,
           emotion: emotionData.emotion,
-        }
+        },
+        {
+          withCredentials: true,
+        },
       );
 
       setMessages((prev) => [
@@ -102,7 +105,7 @@ const Chat = () => {
 
   return (
 
-    <div className="flex w-full h-full overflow-hidden bg-[#0c0c0e] text-white">
+    <div className="flex w-full h-[calc(100vh-70px)] overflow-hidden bg-[#0c0c0e] text-white">
 
 
       {/* Sidebar */}

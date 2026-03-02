@@ -27,6 +27,8 @@ else:
     print("[ERROR] emotion_model.h5 not found. /detect-emotion will not work.")
 
 
+
+
 @app.route("/detect-emotion", methods=["POST"])
 def detect_emotion():
     """ Accepts base64 image → returns detected emotion """

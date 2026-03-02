@@ -18,7 +18,7 @@ const Landing = () => {
           Deliver accurate, consistent designs faster
         </p>
 
-        <Link to="/chat" className="mt-10 px-8 py-2 bg-white text-black rounded-md text-sm font-semibold hover:bg-gray-200">Try Emotion Chatbot</Link>
+        <Link to="/login" className="mt-10 px-8 py-2 bg-white text-black rounded-md text-sm font-semibold hover:bg-gray-200">Try Emotion Chatbot</Link>
 
         
       </div>
