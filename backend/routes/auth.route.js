@@ -1,5 +1,5 @@
 import express from "express";
-import { onboard, signin, signout, signup } from "../controllers/auth.controller.js";
+import { forgotPassword, onboard, resetPassword, signin, signout, signup, verifyOTP } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import User from "../models/User.js";
 
@@ -15,11 +15,20 @@ router.post("/signout",signout)
 
 router.post("/onboarding",protectRoute,onboard)
 
+// otp verification
+
+router.post("/verify-otp",verifyOTP);
+
 
 //checks if the user is authenticated or logged in or not
 router.get("/me",protectRoute,(req,res)=>{
     res.status(200).json({success:true , user:req.user})
 })
+
+
+router.post("/forgot-password", forgotPassword);
+
+router.post("/reset-password/:token", resetPassword);
 
 
 

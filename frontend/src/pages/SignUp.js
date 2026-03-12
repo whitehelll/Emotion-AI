@@ -24,7 +24,11 @@ const SignUp = () => {
         { withCredentials: true }
       );
 
-      navigate("/home");
+       navigate("/verify-otp", {
+         state: { email: data.email },
+       });
+
+      
 
     } catch (err) {
 

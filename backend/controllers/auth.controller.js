@@ -1,5 +1,135 @@
+import { sendOTP } from "../lib/sendOTP.js";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+
+
+import crypto from "crypto";
+import nodemailer from "nodemailer";
+
+
+
+
+
+// forgot password  
+
+
+export const forgotPassword = async (req,res)=>{
+
+  const {email} = req.body;
+
+  try{
+
+    const user = await User.findOne({email});
+
+    if(!user){
+      return res.status(404).json({
+        message:"User not found"
+      });
+    }
+
+    const resetToken =
+      crypto.randomBytes(32).toString("hex");
+
+    user.passwordResetToken = resetToken;
+
+    user.passwordResetExpires =
+      Date.now() + 15 * 60 * 1000;
+
+    await user.save();
+
+    const resetURL =
+      `http://localhost:3000/reset-password/${resetToken}`;
+
+    const transporter =
+      nodemailer.createTransport({
+        service:"gmail",
+        auth:{
+          user:process.env.EMAIL,
+          pass:process.env.EMAIL_PASSWORD
+        }
+      });
+
+    await transporter.sendMail({
+
+      from:process.env.EMAIL,
+      to:user.email,
+      subject:"Reset Password",
+
+      html:`
+      <h2>Password Reset</h2>
+      <p>Click below to reset password</p>
+      <a href="${resetURL}">
+      Reset Password
+      </a>
+      `
+
+    });
+
+    res.json({
+      message:"Reset link sent to email"
+    });
+
+  }catch(err){
+
+    res.status(500).json({
+      message:"Error sending email"
+    });
+
+  }
+
+};
+
+
+
+
+// reset password
+
+
+
+export const resetPassword = async (req,res)=>{
+
+  const {token} = req.params;
+  const {password} = req.body;
+
+  try{
+
+    const user = await User.findOne({
+
+      passwordResetToken:token,
+      passwordResetExpires:{$gt:Date.now()}
+
+    });
+
+    if(!user){
+
+      return res.status(400).json({
+        message:"Token invalid or expired"
+      });
+
+    }
+
+    user.password = password;
+
+    user.passwordResetToken = null;
+    user.passwordResetExpires = null;
+
+    await user.save();
+
+    res.json({
+      message:"Password reset successful"
+    });
+
+  }catch(err){
+
+    res.status(500).json({
+      message:"Reset failed"
+    });
+
+  }
+
+};
+
+
 
 
 // ======================
@@ -35,12 +165,27 @@ export async function signup(req, res) {
       });
     }
 
+
+    // otp verification 
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
     // Create user
     const newUser = await User.create({
       name,
       email,
-      password
+      password,
+
+      emailOTP:otp,
+      otpExpires:Date.now()+300000
     });
+
+
+    await sendOTP(email,otp);
+
+    res.json({
+      message: "OTP Sent",
+      email
+    })
 
 
     // Generate JWT token
@@ -85,12 +230,59 @@ export async function signup(req, res) {
 
 }
 
+// ======================
+// OTP  CONTROLLER
+// ======================
+
+export const verifyOTP = async (req,res)=>{
+  const {email,otp} = req.body;
+
+  try {
+    const user = await User.findOne({email});
+
+    if(!user){
+      return res.status(404).json({
+        message: "User not Found"
+      });
+    }
+
+    if(user.emailOTP!=otp){
+      return res.status(400).json({
+        message:"Wrong OTP",
+      });
+    }
+
+    if(user.otpExpires<Date.now()){
+      return res.status(400).json({
+        message:"otp Expired"
+      });
+    }
+
+    user.isVerified =true;
+    user.emailOTP=null;
+
+    await user.save();
+
+    res.json({
+      message:"Verified"
+    });
+
+    
+  } catch (error) {
+    res.status(500).json({
+      message:"Verification FAiled"
+    });
+    
+  }
+};
+
+
+
 
 
 // ======================
 // SIGNIN CONTROLLER
 // ======================
-
 export async function signin(req, res) {
 
   try {
@@ -103,6 +295,7 @@ export async function signin(req, res) {
       });
     }
 
+    // Find user FIRST
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -111,6 +304,14 @@ export async function signin(req, res) {
       });
     }
 
+    // Check email verification
+    if (!user.isVerified) {
+      return res.status(401).json({
+        message: "Verify Email First"
+      });
+    }
+
+    // Check password
     const isPasswordCorrect =
       await user.matchPassword(password);
 
@@ -120,7 +321,6 @@ export async function signin(req, res) {
       });
     }
 
-
     // Generate JWT
     const token = jwt.sign(
       { userID: user._id },
@@ -128,24 +328,19 @@ export async function signin(req, res) {
       { expiresIn: "7d" }
     );
 
-
     // Set Cookie
     res.cookie("jwt", token, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
       path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      domain: "localhost"
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
-
 
     res.status(200).json({
       success: true,
       user
     });
-
-    console.log(req.body)
 
   }
   catch (error) {
@@ -159,7 +354,6 @@ export async function signin(req, res) {
   }
 
 }
-
 
 
 // ======================

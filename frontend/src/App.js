@@ -11,6 +11,11 @@ import { useThemeStore } from "./store/useThemeStore.js";
 import Navbar from "./component/Navbar";
 import useAuthUser from "./hooks/useAuthUser";
 import Home from "./pages/Home";
+import VerifyOTP from "./pages/VerifyOTP.js";
+import About from "./pages/About.js"
+import Contact from "./pages/Contact.js" 
+import ForgotPassword from "./pages/ForgotPassword.js";
+import ResetPassword from "./pages/ResetPassword.js";
 
 const App = () => {
 
@@ -32,11 +37,15 @@ const App = () => {
   
 
   return (
-
-    
     <div className="h-screen " data-theme={theme}>
-      <Navbar/>
+      <Navbar />
       <Routes>
+        {/*Forgot Password*/}
+
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+
         {/* Landing */}
         <Route path="/landing" element={<Landing />} />
 
@@ -76,6 +85,13 @@ const App = () => {
             )
           }
         />
+
+        {/* Onboarding */}
+
+        <Route path="/verify-otp" element={<VerifyOTP />} />
+
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
 
         {/* Onboarding */}
         <Route
