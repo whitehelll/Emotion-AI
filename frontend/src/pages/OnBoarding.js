@@ -114,311 +114,232 @@ const Onboarding = () => {
 
 
   return (
+    <div
+      className="min-h-screen flex items-center justify-center
+bg-gradient-to-br from-gray-900 via-black to-gray-900 px-4"
+    >
+      <div className="w-full max-w-4xl">
+        <div
+          className="bg-white/5 backdrop-blur-lg
+border border-gray-700
+rounded-2xl shadow-2xl p-8 text-white"
+        >
+          {/* Title */}
 
-    <div className="min-h-screen bg-base-100 flex items-center justify-center p-4">
-
-      <div className="card bg-base-200 w-full max-w-3xl shadow-xl">
-
-        <div className="card-body p-6 sm:p-8">
-
-          <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6">
+          <h1 className="text-3xl font-bold text-center mb-2">
             Complete Your Profile
           </h1>
 
+          <p className="text-center text-gray-400 mb-8">
+            Set up your Emotion AI profile
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Avatar */}
 
-
-            {/* Avatar Section */}
-
-            <div className="flex flex-col items-center justify-center space-y-4">
-
-              <div className="size-32 rounded-full bg-base-300 overflow-hidden">
-
+            <div className="flex flex-col items-center gap-4">
+              <div
+                className="w-36 h-36 rounded-full
+bg-black/40 border border-gray-600
+overflow-hidden shadow-lg"
+              >
                 {formState.profileImg ? (
-
                   <img
                     src={formState.profileImg}
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />
-
                 ) : (
-
                   <div className="flex items-center justify-center h-full">
-
                     <CameraIcon className="size-12 opacity-40" />
-
                   </div>
-
                 )}
-
               </div>
-
 
               <button
                 type="button"
                 onClick={handleRandomAvatar}
-                className="btn btn-accent"
+                className="px-5 py-2 rounded-lg
+bg-gradient-to-r from-blue-500 to-purple-600
+hover:from-blue-600 hover:to-purple-700
+transition shadow-md flex items-center gap-2"
               >
-
-                <ShuffleIcon className="size-4 mr-2" />
-
-                Generate Random Avatar
-
+                <ShuffleIcon size={18} />
+                Random Avatar
               </button>
-
             </div>
 
-
-
-            {/* Full Name */}
-
-            <div className="form-control">
-
-              <label className="label">
-                <span className="label-text">
-                  Full Name
-                </span>
-              </label>
-
-
-              <input
-                type="text"
-
-                value={formState.fullName}
-
-                onChange={(e) =>
-                  setFormState({
-                    ...formState,
-                    fullName: e.target.value
-                  })
-                }
-
-                className="input input-bordered w-full"
-
-                placeholder="Your Full Name"
-              />
-
-            </div>
-
-
-
-            {/* Bio */}
-
-            <div className="form-control">
-
-              <label className="label">
-
-                <span className="label-text">
-                  Bio
-                </span>
-
-              </label>
-
-
-              <textarea
-                value={formState.bio}
-
-                onChange={(e) =>
-                  setFormState({
-                    ...formState,
-                    bio: e.target.value
-                  })
-                }
-
-                className="textarea textarea-bordered h-24"
-
-                placeholder="Tell about yourself"
-              />
-
-            </div>
-
-
-
-            {/* Languages */}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-
-              {/* Native Language */}
-
-              <div className="form-control">
-
-                <label className="label">
-
-                  <span className="label-text">
-                    Native Language
-                  </span>
-
-                </label>
-
-
-                <select
-                  value={formState.nativeLanguage}
-
-                  onChange={(e) =>
-                    setFormState({
-                      ...formState,
-                      nativeLanguage: e.target.value
-                    })
-                  }
-
-                  className="select select-bordered w-full"
-                >
-
-                  <option value="">
-                    Select Language
-                  </option>
-
-
-                  {LANGUAGES.map((lang) => (
-
-                    <option
-                      key={lang}
-                      value={lang.toLowerCase()}
-                    >
-
-                      {lang}
-
-                    </option>
-
-                  ))}
-
-                </select>
-
-              </div>
-
-
-
-              {/* Learning Language */}
-
-              <div className="form-control">
-
-                <label className="label">
-
-                  <span className="label-text">
-                    Learning Language
-                  </span>
-
-                </label>
-
-
-                <select
-                  value={formState.learningLanguage}
-
-                  onChange={(e) =>
-                    setFormState({
-                      ...formState,
-                      learningLanguage: e.target.value
-                    })
-                  }
-
-                  className="select select-bordered w-full"
-                >
-
-                  <option value="">
-                    Select Language
-                  </option>
-
-
-                  {LANGUAGES.map((lang) => (
-
-                    <option
-                      key={lang}
-                      value={lang.toLowerCase()}
-                    >
-
-                      {lang}
-
-                    </option>
-
-                  ))}
-
-                </select>
-
-              </div>
-
-            </div>
-
-
-
-            {/* Location */}
-
-            <div className="form-control">
-
-              <label className="label">
-
-                <span className="label-text">
-                  Location
-                </span>
-
-              </label>
-
-
-              <div className="relative">
-
-                <MapPinIcon className="absolute top-1/2 left-3 transform -translate-y-1/2 size-5 opacity-70" />
+            {/* Name + Location */}
+
+            <div className="grid md:grid-cols-2 gap-5">
+              <div>
+                <label className="text-gray-300 text-sm">Full Name</label>
 
                 <input
                   type="text"
-
-                  value={formState.location}
-
+                  value={formState.fullName}
                   onChange={(e) =>
                     setFormState({
                       ...formState,
-                      location: e.target.value
+                      fullName: e.target.value,
                     })
                   }
-
-                  className="input input-bordered w-full pl-10"
-
-                  placeholder="City, Country"
+                  placeholder="John Doe"
+                  className="w-full mt-2 px-4 py-3
+bg-black/40 border border-gray-600
+rounded-lg outline-none
+focus:border-blue-500
+focus:ring-1 focus:ring-blue-500
+transition"
                 />
-
               </div>
 
+              <div>
+                <label className="text-gray-300 text-sm">Location</label>
+
+                <div className="relative">
+                  <MapPinIcon
+                    className="absolute left-3 top-1/2
+-transform -translate-y-1/2 size-5 opacity-70"
+                  />
+
+                  <input
+                    type="text"
+                    value={formState.location}
+                    onChange={(e) =>
+                      setFormState({
+                        ...formState,
+                        location: e.target.value,
+                      })
+                    }
+                    placeholder="City, Country"
+                    className="w-full mt-2 pl-10 px-4 py-3
+bg-black/40 border border-gray-600
+rounded-lg outline-none
+focus:border-blue-500
+focus:ring-1 focus:ring-blue-500
+transition"
+                  />
+                </div>
+              </div>
             </div>
 
+            {/* Bio */}
 
+            <div>
+              <label className="text-gray-300 text-sm">Bio</label>
+
+              <textarea
+                value={formState.bio}
+                onChange={(e) =>
+                  setFormState({
+                    ...formState,
+                    bio: e.target.value,
+                  })
+                }
+                placeholder="Tell something about yourself..."
+                className="w-full mt-2 px-4 py-3
+bg-black/40 border border-gray-600
+rounded-lg h-28 outline-none
+focus:border-blue-500
+focus:ring-1 focus:ring-blue-500
+transition"
+              />
+            </div>
+
+            {/* Languages */}
+
+            <div className="grid md:grid-cols-2 gap-5">
+              <div>
+                <label className="text-gray-300 text-sm">Native Language</label>
+
+                <select
+                  value={formState.nativeLanguage}
+                  onChange={(e) =>
+                    setFormState({
+                      ...formState,
+                      nativeLanguage: e.target.value,
+                    })
+                  }
+                  className="w-full mt-2 px-4 py-3
+bg-black/40 border border-gray-600
+rounded-lg outline-none
+focus:border-blue-500"
+                >
+                  <option value="">Select Language</option>
+
+                  {LANGUAGES.map((lang) => (
+                    <option key={lang} value={lang.toLowerCase()}>
+                      {lang}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-gray-300 text-sm">
+                  Learning Language
+                </label>
+
+                <select
+                  value={formState.learningLanguage}
+                  onChange={(e) =>
+                    setFormState({
+                      ...formState,
+                      learningLanguage: e.target.value,
+                    })
+                  }
+                  className="w-full mt-2 px-4 py-3
+bg-black/40 border border-gray-600
+rounded-lg outline-none
+focus:border-blue-500"
+                >
+                  <option value="">Select Language</option>
+
+                  {LANGUAGES.map((lang) => (
+                    <option key={lang} value={lang.toLowerCase()}>
+                      {lang}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
             {/* Submit */}
 
             <button
-              className="btn btn-primary w-full"
-
-              disabled={isPending}
-
               type="submit"
+              disabled={isPending}
+              className="w-full py-4 text-lg font-semibold
+rounded-lg
+
+bg-gradient-to-r
+from-blue-500 to-purple-600
+
+hover:from-blue-600
+hover:to-purple-700
+
+transition
+shadow-lg
+active:scale-95
+disabled:opacity-50"
             >
-
               {!isPending ? (
-
                 <>
-                  <ShipWheelIcon className="size-5 mr-2" />
-                  Complete Onboarding
+                  <ShipWheelIcon size={20} />
+                  <span className="ml-2">Complete Profile</span>
                 </>
-
               ) : (
-
                 <>
-                  <LoaderIcon className="animate-spin size-5 mr-2" />
-                  Onboarding...
+                  <LoaderIcon className="animate-spin" size={20} />
+                  <span className="ml-2">Saving...</span>
                 </>
-
               )}
-
             </button>
-
           </form>
-
         </div>
-
       </div>
-
     </div>
-
   );
 
 };

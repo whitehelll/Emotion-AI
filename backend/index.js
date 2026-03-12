@@ -6,6 +6,7 @@ import emotionRouter from "./routes/emotion.route.js";
 import chatRouter from "./routes/chat.route.js";
 import authRouter from "./routes/auth.route.js";
 import ollamaRouter from "./routes/ollamaChat.js";
+import speechRoute from "./routes/speech.route.js";
 
 import connectDB from "./config/db.js";
 import cookieParser from "cookie-parser";
@@ -31,6 +32,7 @@ app.use("/api/auth", authRouter);
 app.use("/api", emotionRouter);
 app.use("/api", chatRouter);
 app.use("/api", ollamaRouter);
+app.use("/api/speech", speechRoute);
 
 // ---------- HOME ROUTE ----------
 app.get("/", (req, res) => {

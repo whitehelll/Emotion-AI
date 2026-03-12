@@ -47,7 +47,7 @@ const Chat = () => {
       });
 
     } catch (error) {
-      console.log("Emotion API error:", error);
+      console.log("Emotion API emotion error:", error);
     }
   };
 

@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, "Name is required"],
-      trim: true
+      trim: true,
     },
 
     email: {
@@ -16,25 +16,39 @@ const userSchema = new mongoose.Schema(
       required: [true, "Email is required"],
       unique: true,
       lowercase: true,
-      trim: true
+      trim: true,
     },
 
     password: {
       type: String,
       required: [true, "Password is required"],
-      minLength: 6
+      minLength: 6,
     },
 
     isOnboard: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
 
+    emailOTP: String,
+
+    otpExpires: Date,
+
+    passwordResetToken: String,
+
+    passwordResetExpires: Date,
   },
   {
-    timestamps: true
-  }
+    timestamps: true,
+  },
 );
+
+
+
 
 
 // Hash password before save
