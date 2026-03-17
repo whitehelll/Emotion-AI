@@ -1,56 +1,118 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import {
+  PieChart,
+  Pie,
+  Tooltip,
+  Cell,
+  Legend,
+  ResponsiveContainer
+} from "recharts";
+
+import EmotionTrend from "../component/EmotionTrend.js";
 
 export default function Analytics() {
 
-  const emotions = [
-    "Happy",
-    "Sad",
-    "Angry",
-    "Fear",
-    "Surprise",
-    "Neutral"
-  ];
+  const [stats, setStats] = useState([]);
+
+  useEffect(() => {
+
+    const fetchAnalytics = async () => {
+
+      try {
+
+        const res = await axios.get(
+          "http://localhost:8080/api/emotion/analytics",
+          { withCredentials: true }
+        );
+
+        const filtered = res.data.stats
+          .filter(e => e._id !== "No Face Detected")
+          .map(item => ({
+            name: item._id,
+            value: item.count
+          }));
+
+        setStats(filtered);
+
+      } catch (error) {
+        console.error(error);
+      }
+
+    };
+
+    fetchAnalytics();
+
+  }, []);
+
+  const COLORS = {
+    Happy: "#22c55e",
+    Sad: "#3b82f6",
+    Angry: "#ef4444",
+    Neutral: "#f59e0b",
+    Surprise: "#a855f7",
+    Disgust: "#06b6d4"
+  };
+
+  const renderLabel = ({ percent }) =>
+    `${(percent * 100).toFixed(0)}%`;
 
   return (
 
-    <div>
+    <div className="p-6 bg-gray-50 min-h-screen">
 
-      <h1>Analytics</h1>
-      <p>Emotion data visualization</p>
+      <h2 className="text-3xl font-bold text-indigo-700 mb-6">
+        Emotion Analytics
+      </h2>
 
-      <div className="table">
+      {/* Pie Chart */}
+      <div className="bg-white shadow-xl rounded-xl p-6 mb-8">
 
-        <h2>Emotion Distribution Table</h2>
+        <h3 className="text-lg font-semibold text-gray-700 mb-4">
+          Emotion Distribution
+        </h3>
 
-        <table>
+        <div className="w-full h-[350px]">
 
-          <thead>
+          <ResponsiveContainer>
 
-            <tr>
-              <th>Emotion</th>
-              <th>Percentage</th>
-            </tr>
+            <PieChart>
 
-          </thead>
+              <Pie
+                data={stats}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={120}
+                label={renderLabel}
+              >
 
-          <tbody>
+                {stats.map((entry, index) => (
+                  <Cell
+                    key={index}
+                    fill={COLORS[entry.name] || "#6366f1"}
+                  />
+                ))}
 
-            {emotions.map(e => (
+              </Pie>
 
-              <tr key={e}>
-                <td>{e}</td>
-                <td>0.00%</td>
-              </tr>
+              <Tooltip />
+              <Legend />
 
-            ))}
+            </PieChart>
 
-          </tbody>
+          </ResponsiveContainer>
 
-        </table>
+        </div>
 
       </div>
+
+      {/* Trend Chart */}
+      <EmotionTrend />
 
     </div>
 
   );
+
 }

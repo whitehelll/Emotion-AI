@@ -50,6 +50,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center space-x-5">
           {!getAuthUser ? (
             <>
+              
               <NavLink to="/login" className={navLinkClass}>
                 Log in
               </NavLink>
@@ -62,6 +63,8 @@ export default function Navbar() {
               </NavLink>
             </>
           ) : (
+
+
             <button
               onClick={logoutMutation}
               disabled={isPending}
@@ -70,6 +73,7 @@ export default function Navbar() {
               <LogOutIcon size={18} />
               {isPending ? "Logging out..." : "Logout"}
             </button>
+
           )}
         </div>
 

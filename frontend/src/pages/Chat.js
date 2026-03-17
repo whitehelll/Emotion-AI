@@ -38,7 +38,10 @@ const Chat = () => {
 
       const res = await axios.post(
         "http://localhost:8080/api/emotion",
-        { imageBase64: base64Image }
+        { imageBase64: base64Image },
+        {
+          withCredentials: true,
+        },
       );
 
       setEmotionData({

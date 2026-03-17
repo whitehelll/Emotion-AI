@@ -1,48 +1,41 @@
-import React, { useState } from "react";
-import Sidebar from "./Sidebar.js";
+import React, { useState, lazy, Suspense } from "react";
+import Sidebar from "./Sidebar";
 
-import Dashboard from "../pages/Dashboard";
-import Users from "../pages/Users";
-import EmotionLogs from "../pages/EmotionLogs";
-import Analytics from "../pages/Analytics";
-import "./dashboard.css";
+// Lazy loaded pages
+const Dashboard = lazy(() => import("../pages/Dashboard"));
+const Users = lazy(() => import("../pages/Users"));
+const EmotionLogs = lazy(() => import("../pages/EmotionLogs"));
+const Analytics = lazy(() => import("../pages/Analytics"));
 
 export default function DashboardLayout() {
-
   const [active, setActive] = useState("dashboard");
 
   const renderPage = () => {
-
     switch (active) {
-
-      case "dashboard":
-        return <Dashboard />;
-
       case "users":
         return <Users />;
-
       case "logs":
         return <EmotionLogs />;
-
       case "analytics":
         return <Analytics />;
-
       default:
         return <Dashboard />;
     }
   };
 
   return (
+    <div className="flex h-screen w-full">
 
-    <div className="dashboard-container">
+      {/* Sidebar */}
+      <Sidebar active={active} setActive={setActive} />
 
-      <Sidebar active={active} setActive={setActive}/>
-
-      <div className="main-content">
-        {renderPage()}
+      {/* Main Content */}
+      <div className="flex-1 bg-gray-100 p-10 overflow-y-auto">
+        <Suspense fallback={<div className="text-center text-lg mt-20">Loading...</div>}>
+          {renderPage()}
+        </Suspense>
       </div>
 
     </div>
-
   );
 }
