@@ -11,7 +11,7 @@ router.post("/ollama-chat", async (req, res) => {
   try {
 
     const response = await axios.post(
-      "http://127.0.0.1:5000/chat",
+      "http://127.0.0.1:5004/chat",
       {
         message,
         emotion
