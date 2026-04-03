@@ -1,93 +1,62 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
+import api from "../api/axios";
 
 const VerifyOTP = () => {
-
   const navigate = useNavigate();
   const location = useLocation();
 
   const email = location.state?.email;
+  const isAdmin = location.state?.isAdmin;
 
-  const [otp,setOtp] = useState("");
-  const [error,setError]=useState("");
+  const [otp, setOtp] = useState("");
+  const [error, setError] = useState("");
 
-  const verifyOTP = async (e)=>{
+  // 🔥 Prevent direct access
+  if (!email) {
+    navigate("/signup");
+    return null;
+  }
 
+  const verifyOTP = async (e) => {
     e.preventDefault();
 
-    try{
-
-      await axios.post(
-        "http://localhost:8080/api/auth/verify-otp",
-        {
-          email,
-          otp
-        }
+    try {
+      await api.post(
+        isAdmin
+          ? "/api/admin-auth/verify-otp"
+          : "/api/auth/verify-otp",
+        { email, otp }
       );
 
       alert("Email Verified");
 
-      navigate("/login");
+      navigate(isAdmin ? "/admin-login" : "/login");
 
-    }catch(err){
-
-      setError(
-        err.response?.data?.message ||
-        "Invalid OTP"
-      );
-
+    } catch (err) {
+      setError(err.response?.data?.message || "Invalid OTP");
     }
-
   };
 
   return (
+    <div className="min-h-screen flex items-center justify-center bg-black text-white">
+      <form onSubmit={verifyOTP} className="p-6 bg-gray-900 rounded-lg">
+        <h2 className="text-xl mb-4">Verify Email</h2>
 
-    <div className="min-h-screen flex items-center justify-center
-    bg-gradient-to-br from-gray-900 via-black to-gray-900">
+        {error && <p className="text-red-400">{error}</p>}
 
-      <div className="bg-white/5 p-8 rounded-2xl
-      border border-gray-700 w-[350px] text-white">
+        <input
+          value={otp}
+          onChange={(e) => setOtp(e.target.value)}
+          placeholder="Enter OTP"
+          className="w-full p-2 mb-3 bg-gray-800"
+        />
 
-        <h2 className="text-2xl font-bold mb-4 text-center">
-          Verify Email
-        </h2>
-
-        <p className="text-gray-400 text-center mb-5">
-          Enter OTP sent to email
-        </p>
-
-        {error && (
-          <div className="text-red-400 mb-3">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={verifyOTP}>
-
-          <input
-            value={otp}
-            onChange={(e)=>setOtp(e.target.value)}
-            placeholder="Enter OTP"
-
-            className="w-full p-3 rounded-lg
-            bg-black/40 border border-gray-600
-            mb-4 outline-none"
-          />
-
-          <button
-            className="w-full p-3 rounded-lg
-            bg-blue-500 hover:bg-blue-600"
-          >
-            Verify OTP
-          </button>
-
-        </form>
-
-      </div>
-
+        <button className="w-full bg-blue-500 p-2 rounded">
+          Verify
+        </button>
+      </form>
     </div>
-
   );
 };
 
