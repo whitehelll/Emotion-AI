@@ -81,50 +81,15 @@ const App = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        {/* ================= AUTH ================= */}
-        {/* <Route
-          path="/login"
-          element={
-            isAdminAuthenticated ? (
-              <Navigate to="/admin/dashboard" />
-            ) : isAuthenticated ? (
-              <Navigate to={isOnboard ? "/" : "/onboarding"} />
-            ) : (
-              <Login />
-            )
-          }
-        /> */}
+      
 
-        {/* <Route
-          path="/signup"
-          element={
-            isAdminAuthenticated ? (
-              <Navigate to="/admin/dashboard" />
-            ) : isAuthenticated ? (
-              <Navigate to="/" />
-            ) : (
-              <SignUp />
-            )
-          }
-        /> */}
+   
 
         <Route path="/verify-otp" element={<VerifyOTP />} />
 
         {/* ================= USER ROUTES ================= */}
 
-        {/* <Route
-          path="/"
-          element={
-            isAdminAuthenticated ? (
-              <Navigate to="/admin/dashboard" />
-            ) : isAuthenticated && isOnboard ? (
-              <Home />
-            ) : (
-              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
-            )
-          }
-        /> */}
-
+  
         <Route
           path="/onboarding"
           element={

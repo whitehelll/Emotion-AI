@@ -1,14 +1,20 @@
 import React, { useState } from "react";
 import api from "../api/axios";
+import { Link } from "react-router-dom";
+import { Eye, EyeOff, Shield } from "lucide-react";
 
 const AdminLogin = () => {
   const [data, setData] = useState({
     email: "",
-    password: ""
+    password: "",
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       const res = await api.post("/api/admin-auth/login", data);
@@ -18,63 +24,130 @@ const AdminLogin = () => {
       }
     } catch (err) {
       alert(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
-      
-      <form
-        onSubmit={handleLogin}
-        className="bg-white/10 backdrop-blur-xl border border-white/20 
-        p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6"
-      >
-        {/* Title */}
-        <h2 className="text-3xl font-bold text-center text-white">
-          Admin Login
-        </h2>
+    <div className="min-h-screen relative flex items-center justify-center px-4 text-white font-sans">
 
-        {/* Email Input */}
-        <div className="flex flex-col gap-1">
-          <label className="text-sm text-gray-300">Email</label>
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="px-4 py-3 rounded-lg bg-white/20 text-white 
-            placeholder-gray-300 outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={(e) =>
-              setData({ ...data, email: e.target.value })
-            }
-          />
+      {/* 🔥 Background */}
+      <div className="absolute inset-0">
+        <img
+          src="https://images.unsplash.com/photo-1518770660439-4636190af475"
+          alt="secure"
+          className="w-full h-full object-cover opacity-25"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-[#020617]/95 to-[#020617]"></div>
+      </div>
+
+      {/* 🔥 Card */}
+      <div className="relative w-full max-w-md">
+        <div className="bg-white/5 backdrop-blur-xl border border-red-500/20 rounded-3xl shadow-2xl p-8">
+
+          {/* Title */}
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Shield className="text-red-400" size={22} />
+            <h2 className="text-3xl font-bold text-center text-red-400">
+              Admin Access
+            </h2>
+          </div>
+
+          <p className="text-center text-gray-400 mb-6">
+            Authorized personnel only
+          </p>
+
+          <form onSubmit={handleLogin} className="space-y-5">
+
+            {/* Email */}
+            <div>
+              <label className="text-sm text-gray-300">Admin Email</label>
+              <input
+                type="email"
+                required
+                placeholder="admin@example.com"
+                value={data.email}
+                onChange={(e) =>
+                  setData({ ...data, email: e.target.value })
+                }
+                className="w-full mt-2 px-4 py-3 rounded-lg
+                bg-white/5 border border-white/10
+                focus:border-red-500 focus:ring-2 focus:ring-red-500/30
+                outline-none transition"
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="text-sm text-gray-300">Password</label>
+
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="••••••••"
+                  value={data.password}
+                  onChange={(e) =>
+                    setData({ ...data, password: e.target.value })
+                  }
+                  className="w-full mt-2 px-4 py-3 rounded-lg
+                  bg-white/5 border border-white/10
+                  focus:border-red-500 focus:ring-2 focus:ring-red-500/30
+                  outline-none"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              {/* 🔥 Forgot Password */}
+
+
+              <div className="text-right mt-2">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-red-400 hover:text-red-300"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+
+
+
+            </div>
+
+            {/* Button */}
+            <button
+              disabled={loading}
+              className="w-full py-3 text-lg font-semibold rounded-lg
+              bg-gradient-to-r from-red-500 to-pink-600
+              hover:from-red-600 hover:to-pink-700
+              transition-all duration-300 shadow-lg
+              hover:shadow-red-500/20 active:scale-95 disabled:opacity-50"
+            >
+              {loading ? "Authenticating..." : "Login as Admin"}
+            </button>
+
+
+            <p className="text-center text-gray-400 text-sm">
+              Don’t have an account?
+              <Link
+                to="/admin-signup"
+                className="ml-1 text-blue-400 hover:text-blue-300"
+              >
+                Sign Up
+              </Link>
+            </p>
+
+          </form>
         </div>
-
-        {/* Password Input */}
-        <div className="flex flex-col gap-1">
-          <label className="text-sm text-gray-300">Password</label>
-          <input
-            type="password"
-            placeholder="Enter your password"
-            className="px-4 py-3 rounded-lg bg-white/20 text-white 
-            placeholder-gray-300 outline-none focus:ring-2 focus:ring-purple-500"
-            onChange={(e) =>
-              setData({ ...data, password: e.target.value })
-            }
-          />
-        </div>
-
-        {/* Button */}
-        <button
-          type="submit"
-          className="w-full py-3 text-lg font-semibold rounded-xl
-          bg-gradient-to-r from-blue-500 to-purple-600
-          hover:from-blue-600 hover:to-purple-700
-          transition-all duration-200
-          shadow-lg hover:shadow-xl active:scale-95 text-white"
-        >
-          Login
-        </button>
-
-      </form>
+      </div>
     </div>
   );
 };
