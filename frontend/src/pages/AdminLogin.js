@@ -1,111 +1,99 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import useLogin from "../hooks/useLogin";
-import { Eye, EyeOff } from "lucide-react";
+import React, { useState } from "react";
+import api from "../api/axios";
+import { Link } from "react-router-dom";
+import { Eye, EyeOff, Shield } from "lucide-react";
 
-const Login = () => {
+const AdminLogin = () => {
   const [data, setData] = useState({
     email: "",
     password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
-  const { loginMutation, isPending, error } = useLogin();
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    loginMutation(
-      {
-        ...data,
-        type: "user", // ✅ fixed
-      },
-      {
-        onSuccess: () => {
-          navigate("/chat");
-        },
-        onError: (err) => {
-          if (err.response?.data?.isVerified === false) {
-            navigate("/verify-otp", {
-              state: { email: data.email, isAdmin: false },
-            });
-          }
-        },
+    try {
+      const res = await api.post("/api/admin-auth/login", data);
+
+      if (res.data.success) {
+        window.location.href = "/admin/dashboard";
       }
-    );
+    } catch (err) {
+      alert(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen relative flex items-center justify-center px-4 text-white font-sans">
 
-      {/* Background */}
+      {/* 🔥 Background */}
       <div className="absolute inset-0">
         <img
-          src="https://images.unsplash.com/photo-1506744038136-46273834b3fb"
-          alt="calm"
-          className="w-full h-full object-cover opacity-30"
+          src="https://images.unsplash.com/photo-1518770660439-4636190af475"
+          alt="secure"
+          className="w-full h-full object-cover opacity-25"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#020617] via-[#020617]/90 to-black"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-[#020617]/95 to-[#020617]"></div>
       </div>
 
-      {/* Card */}
+      {/* 🔥 Card */}
       <div className="relative w-full max-w-md">
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8">
+        <div className="bg-white/5 backdrop-blur-xl border border-red-500/20 rounded-3xl shadow-2xl p-8">
 
           {/* Title */}
-          <h1 className="text-3xl font-bold text-center mb-2">
-            Welcome Back
-          </h1>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Shield className="text-red-400" size={22} />
+            <h2 className="text-3xl font-bold text-center text-red-400">
+              Admin Access
+            </h2>
+          </div>
 
           <p className="text-center text-gray-400 mb-6">
-            Login to your Emotion AI account
+            Authorized personnel only
           </p>
-
-          {/* Error */}
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/40 text-red-400 p-3 rounded-lg mb-4 text-sm">
-              {error.response?.data?.message || "Login failed"}
-            </div>
-          )}
 
           <form onSubmit={handleLogin} className="space-y-5">
 
             {/* Email */}
             <div>
-              <label className="text-gray-300 text-sm">Email</label>
+              <label className="text-sm text-gray-300">Admin Email</label>
               <input
                 type="email"
                 required
+                placeholder="admin@example.com"
                 value={data.email}
                 onChange={(e) =>
                   setData({ ...data, email: e.target.value })
                 }
-                placeholder="you@example.com"
                 className="w-full mt-2 px-4 py-3 rounded-lg
                 bg-white/5 border border-white/10
-                focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30
+                focus:border-red-500 focus:ring-2 focus:ring-red-500/30
                 outline-none transition"
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="text-gray-300 text-sm">Password</label>
+              <label className="text-sm text-gray-300">Password</label>
 
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   required
+                  placeholder="••••••••"
                   value={data.password}
                   onChange={(e) =>
                     setData({ ...data, password: e.target.value })
                   }
-                  placeholder="••••••••"
                   className="w-full mt-2 px-4 py-3 rounded-lg
                   bg-white/5 border border-white/10
-                  focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30
+                  focus:border-red-500 focus:ring-2 focus:ring-red-500/30
                   outline-none"
                 />
 
@@ -118,33 +106,39 @@ const Login = () => {
                 </button>
               </div>
 
+              {/* 🔥 Forgot Password */}
+
+
               <div className="text-right mt-2">
                 <Link
                   to="/forgot-password"
-                  className="text-sm text-blue-400 hover:text-blue-300"
+                  className="text-sm text-red-400 hover:text-red-300"
                 >
                   Forgot Password?
                 </Link>
               </div>
+
+
+
             </div>
 
             {/* Button */}
             <button
-              disabled={isPending}
+              disabled={loading}
               className="w-full py-3 text-lg font-semibold rounded-lg
-              bg-gradient-to-r from-blue-500 to-purple-600
-              hover:from-blue-600 hover:to-purple-700
+              bg-gradient-to-r from-red-500 to-pink-600
+              hover:from-red-600 hover:to-pink-700
               transition-all duration-300 shadow-lg
-              hover:shadow-blue-500/20 active:scale-95 disabled:opacity-50"
+              hover:shadow-red-500/20 active:scale-95 disabled:opacity-50"
             >
-              {isPending ? "Logging in..." : "Login"}
+              {loading ? "Authenticating..." : "Login as Admin"}
             </button>
 
-            {/* Signup */}
+
             <p className="text-center text-gray-400 text-sm">
               Don’t have an account?
               <Link
-                to="/signup"
+                to="/admin-signup"
                 className="ml-1 text-blue-400 hover:text-blue-300"
               >
                 Sign Up
@@ -158,4 +152,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdminLogin;

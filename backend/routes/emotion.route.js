@@ -3,6 +3,7 @@ import axios from "axios";
 import mongoose from "mongoose";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import Emotion from "../models/Emotion.js";
+import { protectAdmin } from "../middleware/adminAuth.middleware.js";
 
 const router = express.Router();
 
@@ -67,13 +68,15 @@ Emotion History
 --------------------------------
 */
 
-router.get("/emotion/history", protectRoute, async (req, res) => {
+router.get("/emotion/history", protectAdmin, async (req, res) => {
 
   try {
 
     const logs = await Emotion.find({
       user: req.user._id
-    }).sort({ createdAt: -1 });
+    })
+    .populate("user","name email")
+    .sort({ createdAt: -1 });
 
     res.json({
       success: true,
@@ -98,7 +101,7 @@ Emotion Analytics
 --------------------------------
 */
 
-router.get("/emotion/analytics", protectRoute, async (req, res) => {
+router.get("/emotion/analytics", protectAdmin, async (req, res) => {
 
   try {
 
@@ -136,7 +139,7 @@ router.get("/emotion/analytics", protectRoute, async (req, res) => {
 });
 
 
-router.get("/emotion/timeline", protectRoute, async (req, res) => {
+router.get("/emotion/timeline", protectAdmin, async (req, res) => {
 
   try {
 
