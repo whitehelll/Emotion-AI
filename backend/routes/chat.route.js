@@ -5,7 +5,7 @@ import { protectRoute } from "../middleware/auth.middleware.js";
 const router = express.Router();
 router.use(protectRoute);
 
-const FLASK_BASE_URL = "http://127.0.0.1:5050";
+const FLASK_BASE_URL = process.env.FLASK_BASE_URL || "http://localhost:5000";
 
 // ------------------------
 // CHAT
