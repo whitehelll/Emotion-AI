@@ -1,8 +1,21 @@
-flask
-flask-cors
-gunicorn
-numpy
-pandas
+# Core ML
 tensorflow-cpu==2.12.0
-keras
-opencv-python
+numpy==1.23.5
+pandas==1.5.3
+scikit-learn==1.2.2
+
+# Image / Emotion Processing
+opencv-python==4.8.1.78
+Pillow==10.0.1
+
+# Backend
+flask==2.3.3
+flask-cors==4.0.0
+gunicorn==21.2.0
+
+# Utilities
+requests==2.31.0
+python-dotenv==1.0.1
+
+# Optional (if used)
+matplotlib==3.7.2
