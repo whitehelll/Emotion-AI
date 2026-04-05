@@ -1,155 +1,278 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 from google import genai
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
 load_dotenv()
+
 app = Flask(__name__)
+
+# -----------------------
+# Gemini Client
+# -----------------------
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 # -----------------------
-# USER STORAGE (NEW)
+# Storage
 # -----------------------
-user_data = {}
 
-def get_user_store(user_id):
-    if user_id not in user_data:
-        user_data[user_id] = {
-            "conversation_history": [],
-            "all_chats": [],
-            "last_message_time": None
-        }
-    return user_data[user_id]
+conversation_history = []
+all_chats = []
+
+last_message_time = None
+TIME_GAP_LIMIT = timedelta(minutes=30)
+
 
 # -----------------------
-# HELPERS
+# Helper: Generate Description
 # -----------------------
+
 def generate_description(messages):
-    user_msgs = [m["content"] for m in messages if m["role"] == "user"]
-    return (" ".join(user_msgs[:2])[:60]) if user_msgs else "Conversation"
+    user_msgs = [m["content"] for m in messages if m["role"] == "user" and m["content"].strip()]
+
+    if not user_msgs:
+        return "Conversation"
+
+    text = " ".join(user_msgs[:2])
+    return text[:60]
+
+
+# -----------------------
+# Save Chat
+# -----------------------
+
+def save_current_chat():
+    global conversation_history, all_chats
+
+    if len(conversation_history) == 0:
+        return
+
+    description = generate_description(conversation_history)
+    description = f"{description} ({datetime.now().strftime('%d %b %H:%M')})"
+
+    all_chats.append({
+        "id": len(all_chats),
+        "description": description,
+        "messages": conversation_history.copy(),
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
+    })
+
+
+# -----------------------
+# Emotion Starter
+# -----------------------
 
 def get_emotion_prompt(emotion):
-    return {
+    prompts = {
         "sad": "I'm here for you. Why are you feeling sad?",
         "happy": "That's great! What's making you feel happy?",
         "angry": "I understand. What's making you feel angry?",
         "neutral": "How are you feeling today?"
-    }.get(emotion.lower(), "How are you feeling?")
+    }
+    return prompts.get(emotion.lower(), "How are you feeling?")
+
+
+# -----------------------
+# Empty Input Handling (NEW)
+# -----------------------
 
 def get_fallback_response(emotion):
-    return {
-        "sad": "I'm here with you.",
-        "happy": "Tell me more 😊",
-        "angry": "Take your time.",
-        "neutral": "I'm listening."
-    }.get(emotion.lower(), "Go ahead.")
+    fallback = {
+        "sad": "It's okay if you don't feel like saying much. I'm here with you.",
+        "happy": "You seem happy 😊 Want to share more?",
+        "angry": "Take your time. I'm listening.",
+        "neutral": "No rush. Tell me whenever you're ready."
+    }
+    return fallback.get(emotion.lower(), "I'm here whenever you want to talk.")
+
 
 # -----------------------
-# CHAT
+# Routes
 # -----------------------
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+# -----------------------
+# Chat API
+# -----------------------
+
 @app.route("/chat", methods=["POST"])
 def chat():
-    data = request.get_json()
-    user_id = data.get("userId", "default")
 
-    store = get_user_store(user_id)
-    history = store["conversation_history"]
+    global last_message_time, conversation_history
 
-    msg = data.get("message", "").strip()
-    emotion = data.get("emotion", "neutral")
-    now = datetime.now()
+    try:
+        data = request.get_json()
 
-    # First message
-    if len(history) == 0:
-        reply = get_emotion_prompt(emotion)
-        history.append({"role": "assistant", "content": reply})
-        return jsonify({"reply": reply})
+        user_message = data.get("message", "").strip()
+        emotion = data.get("emotion", "neutral")
 
-    # Empty input
-    if not msg:
-        reply = get_fallback_response(emotion)
-        history.append({"role": "assistant", "content": reply})
-        return jsonify({"reply": reply})
+        current_time = datetime.now()
 
-    # AI response
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=f"I am {emotion}. {msg}"
-    )
+        # -------------------------------
+        # Auto split chats
+        # -------------------------------
 
-    reply = response.text
+        if last_message_time:
 
-    history.append({"role": "user", "content": msg})
-    history.append({"role": "assistant", "content": reply})
+            if current_time.date() != last_message_time.date():
+                save_current_chat()
+                conversation_history = []
 
-    return jsonify({"reply": reply})
+            elif current_time - last_message_time > TIME_GAP_LIMIT:
+                save_current_chat()
+                conversation_history = []
 
-# -----------------------
-# HISTORY
-# -----------------------
-@app.route("/history")
-def history():
-    user_id = request.args.get("userId", "default")
-    store = get_user_store(user_id)
+        # -------------------------------
+        # FIRST BOT MESSAGE
+        # -------------------------------
 
-    return jsonify({"history": store["conversation_history"]})
+        if len(conversation_history) == 0:
+            bot_msg = get_emotion_prompt(emotion)
 
-# -----------------------
-# NEW CHAT
-# -----------------------
-@app.route("/newchat", methods=["POST"])
-def newchat():
-    data = request.get_json()
-    user_id = data.get("userId", "default")
+            conversation_history.append({
+                "role": "assistant",
+                "content": bot_msg,
+                "time": current_time.strftime("%H:%M"),
+                "date": current_time.strftime("%Y-%m-%d")
+            })
 
-    store = get_user_store(user_id)
+            last_message_time = current_time
 
-    if store["conversation_history"]:
-        store["all_chats"].append({
-            "id": len(store["all_chats"]),
-            "description": generate_description(store["conversation_history"]),
-            "messages": store["conversation_history"].copy()
+            return jsonify({"reply": bot_msg})
+
+        # -------------------------------
+        # EMPTY INPUT HANDLING (FIXED)
+        # -------------------------------
+
+        if not user_message:
+            reply = get_fallback_response(emotion)
+
+            conversation_history.append({
+                "role": "assistant",
+                "content": reply,
+                "time": current_time.strftime("%H:%M"),
+                "date": current_time.strftime("%Y-%m-%d")
+            })
+
+            last_message_time = current_time
+
+            return jsonify({"reply": reply})
+
+        # -------------------------------
+        # NORMAL AI RESPONSE
+        # -------------------------------
+
+        prompt = f"I am {emotion}. {user_message}"
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+
+        reply = response.text
+
+        # Save user message
+        conversation_history.append({
+            "role": "user",
+            "content": user_message,
+            "time": current_time.strftime("%H:%M"),
+            "date": current_time.strftime("%Y-%m-%d")
         })
 
-    store["conversation_history"] = []
+        # Save bot reply
+        conversation_history.append({
+            "role": "assistant",
+            "content": reply,
+            "time": current_time.strftime("%H:%M"),
+            "date": current_time.strftime("%Y-%m-%d")
+        })
+
+        last_message_time = current_time
+
+        return jsonify({"reply": reply})
+
+    except Exception as e:
+        return jsonify({
+            "reply": "Server Error",
+            "error": str(e)
+        })
+
+
+# -----------------------
+# Current History
+# -----------------------
+
+@app.route("/history")
+def history():
+    return jsonify({"history": conversation_history})
+
+
+# -----------------------
+# New Chat
+# -----------------------
+
+@app.route("/newchat", methods=["POST"])
+def newchat():
+
+    global conversation_history, last_message_time
+
+    save_current_chat()
+
+    conversation_history = []
+    last_message_time = None
 
     return jsonify({"message": "New Chat Started"})
 
+
 # -----------------------
-# DESCRIPTIONS
+# Chat Descriptions
 # -----------------------
+
 @app.route("/chat_descriptions")
 def chat_descriptions():
-    user_id = request.args.get("userId", "default")
-    store = get_user_store(user_id)
 
-    chats = store["all_chats"]
+    temp_chats = all_chats.copy()
 
-    if store["conversation_history"]:
-        chats = chats + [{
-            "id": len(chats),
-            "description": generate_description(store["conversation_history"]) + " (ongoing)"
-        }]
+    if len(conversation_history) > 0:
+        temp_chats.append({
+            "id": len(temp_chats),
+            "description": generate_description(conversation_history) + " (ongoing)",
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
+        })
 
-    return jsonify({"chats": chats})
+    return jsonify({"chats": temp_chats})
+
 
 # -----------------------
-# GET CHAT
+# Open Chat
 # -----------------------
+
 @app.route("/chat/<int:chat_id>")
 def get_chat(chat_id):
-    user_id = request.args.get("userId", "default")
-    store = get_user_store(user_id)
 
-    if chat_id < len(store["all_chats"]):
-        return jsonify({"chat": store["all_chats"][chat_id]})
+    temp_chats = all_chats.copy()
+
+    if len(conversation_history) > 0:
+        temp_chats.append({
+            "description": "Current Chat",
+            "messages": conversation_history
+        })
+
+    if chat_id < len(temp_chats):
+        return jsonify({"chat": temp_chats[chat_id]})
 
     return jsonify({"error": "Chat not found"})
 
+
 # -----------------------
-# RUN
+# Run Server
 # -----------------------
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5050, debug=True)
+    app.run(host = '0.0.0.0', port=5050,debug=True)
