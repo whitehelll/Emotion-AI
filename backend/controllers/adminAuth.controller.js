@@ -112,7 +112,7 @@ export const adminLogin = async (req, res) => {
     res.cookie("admin_jwt", token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: false,
+      secure: true,
       path: "/"
     });
 
