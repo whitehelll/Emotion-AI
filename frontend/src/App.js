@@ -26,11 +26,15 @@ import AdminLogin from "./pages/AdminLogin.js";
 import AdminUsers from "./pages/AdminUsers.js";
 import GlobalAnalytics from "./pages/GlobalAnalytics.js";
 import TimelinePage from "./pages/TimelinePage.js";
+import { useLocation } from "react-router-dom";
 
 const App = () => {
 
   const { isLoading, authUser } = useAuthUser();
   const { admin, loading: adminLoading } = useAdminAuth();
+
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   const { theme } = useThemeStore();
 

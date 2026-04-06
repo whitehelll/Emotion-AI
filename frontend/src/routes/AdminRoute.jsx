@@ -6,7 +6,7 @@ const AdminRoute = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(null);
 
   useEffect(() => {
-    axios.get("http://localhost:8080/api/admin/me", {
+    axios.get("http://localhost:8080/api/admin-auth/me", {
       withCredentials: true
     })
       .then(() => setIsAdmin(true))

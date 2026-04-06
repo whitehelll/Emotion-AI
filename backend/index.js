@@ -12,6 +12,7 @@ import adminAuthRouter from "./routes/adminAuth.route.js";
 
 import connectDB from "./config/db.js";
 import cookieParser from "cookie-parser";
+import path from "path";
 
 dotenv.config();
 
@@ -20,11 +21,15 @@ const app = express();
 // ---------- CONNECT MONGO ----------
 connectDB();
 
+const __dirname=path.resolve();
+
 // ---------- MIDDLEWARE ----------
 app.use(express.json({ limit: "10mb" }));
 
 app.use(cors({
-  origin: "http://localhost:3000", // React/Vite frontend
+  origin: process.env.NODE_ENV === "production"
+    ? true   // allow same-origin (Render/Vercel)
+    : "http://localhost:3000",
   credentials: true
 }));
 app.use(cookieParser());
@@ -38,12 +43,23 @@ app.use("/api", chatRouter);
 app.use("/api/speech", speechRoute);
 app.use("/api", userRouter);
 // ---------- HOME ROUTE ----------
-app.get("/", (req, res) => {
-  res.json({
-    status: "OK",
-    message: "Emotion AI Backend running"
-  });
+
+app.get("/api/health", (req, res) => {
+  res.json({ status: "OK" });
 });
+
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/build")));
+
+  // ✅ SAFE fallback (NO PATH STRING)
+  app.use((req, res) => {
+    res.sendFile(
+      path.join(__dirname, "../frontend", "build", "index.html")
+    );
+  });
+}
+
 
 // ---------- START SERVER ----------
 const PORT = process.env.PORT || 8080;

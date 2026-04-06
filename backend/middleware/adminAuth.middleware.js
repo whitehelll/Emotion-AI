@@ -6,7 +6,7 @@ export const protectAdmin = async (req, res, next) => {
     console.log("Cookies:", req.cookies); // 🔥 debug first
 
     const token =
-      req.cookies?.admin_jwt ||
+      req.cookies?.admin_jwt ||  
       req.headers.authorization?.split(" ")[1];
 
     if (!token) {
