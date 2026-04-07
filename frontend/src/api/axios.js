@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const BASE_URL =
-  import.meta.env.MODE === "production"
+  import.meta.env.MODE === "development"
     ? "http://localhost:8080/api"
     : "/api";   // ✅ SAME DOMAIN in production
 
