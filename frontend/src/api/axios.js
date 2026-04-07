@@ -1,9 +1,9 @@
 import axios from "axios";
 
 const BASE_URL =
-  import.meta.env.MODE === "development"
+  process.env.NODE_ENV === "development"
     ? "http://localhost:8080/api"
-    : "/api";   // ✅ SAME DOMAIN in production
+    : "/api";
 
 const api = axios.create({
   baseURL: BASE_URL,
