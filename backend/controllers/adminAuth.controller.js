@@ -19,10 +19,6 @@ export const getAdmin = async (req,res)=>{
 };
 
 
-
-
-
-
 export const adminSignup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -109,22 +105,22 @@ export const adminLogin = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.cookie("admin_jwt", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: true,
-      path: "/"
-    });
+   res.cookie("admin_jwt", token, {
+     httpOnly: true,
+     secure: process.env.NODE_ENV === "production", // ✅ REQUIRED
+     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // ✅ REQUIRED
+     path: "/",
+   });
 
-    res.json({
-      success: true,
-      role: "admin",
-      admin: {
-        _id: admin._id,
-        name: admin.name,
-        email: admin.email
-      }
-    });
+   res.json({
+     success: true,
+     role: "admin",
+     admin: {
+       _id: admin._id,
+       name: admin.name,
+       email: admin.email,
+     },
+   });
 
   } catch (err) {
     res.status(500).json({
