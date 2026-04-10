@@ -1,17 +1,23 @@
-# Use stable Python version (important for TensorFlow)
 FROM python:3.10
 
-# Set working directory
 WORKDIR /app
 
-# Copy files
 COPY . .
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install system dependencies for OpenCV
+RUN apt-get update && apt-get install -y \
+    libgl1 \
+    libglib2.0-0
 
-# Expose port (Render uses 10000)
+# Upgrade pip
+RUN pip install --upgrade pip
+
+# Install TensorFlow first (heavy)
+RUN pip install --no-cache-dir --default-timeout=1000 tensorflow-cpu==2.12.0
+
+# Install rest
+RUN pip install --no-cache-dir --default-timeout=1000 -r requirements.txt
+
 EXPOSE 10000
 
-# Start app with gunicorn
 CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:10000"]
