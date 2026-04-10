@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)   # Allow React to access Flask
 
 # Path to your model
-MODEL_PATH = r"E:\New folder\New folder\Chatbot\python_service\emotion_model.h5"
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "emotion_model.h5")
 
 if not os.path.exists(MODEL_PATH):
     print(f"[WARNING] Model file not found at {MODEL_PATH}")

@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, request, jsonify
-from google import genai
+import google.generativeai as genai
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
@@ -12,7 +12,7 @@ app = Flask(__name__)
 # Gemini Client
 # -----------------------
 
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+client = genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # -----------------------
 # Storage
