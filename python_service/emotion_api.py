@@ -5,6 +5,8 @@ from tensorflow.keras.models import load_model
 import base64
 import os
 import requests
+import gdown
+
 
 # 🔥 Disable TensorFlow optimizations (stability)
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
@@ -18,36 +20,55 @@ emotion_labels = ['Angry', 'Disgust', 'Happy', 'Neutral', 'Sad', 'Surprise']
 
 # -------------------------------
 # Download Model (Google Drive)
-# -------------------------------
+
+
 def download_model():
     if os.path.exists(MODEL_PATH):
+        print("✅ Model already exists")
         return
 
-    print("⬇️ Downloading model...")
+    print("⬇️ Downloading model via gdown...")
 
-    session = requests.Session()
-    response = session.get(MODEL_URL, stream=True)
+    url = "https://drive.google.com/uc?id=1l2d9B1LeGDXlia1NwONu5TzGGDIIK3Wv"
+    gdown.download(url, MODEL_PATH, quiet=False)
 
-    # Handle large file confirm
-    for key, value in response.cookies.items():
-        if key.startswith("download_warning"):
-            params = {
-                "id": MODEL_URL.split("id=")[-1],
-                "confirm": value
-            }
-            response = session.get(
-                "https://drive.google.com/uc?export=download",
-                params=params,
-                stream=True
-            )
-            break
+    size = os.path.getsize(MODEL_PATH) / (1024 * 1024)
+    print(f"📦 Model size: {size:.2f} MB")
 
-    with open(MODEL_PATH, "wb") as f:
-        for chunk in response.iter_content(1024 * 1024):
-            if chunk:
-                f.write(chunk)
+    if size < 50:
+        raise Exception("❌ Model corrupted (download failed)")
 
-    print("✅ Model downloaded")
+
+# -------------------------------
+# def download_model():
+#     if os.path.exists(MODEL_PATH):
+#         return
+
+#     print("⬇️ Downloading model...")
+
+#     session = requests.Session()
+#     response = session.get(MODEL_URL, stream=True)
+
+#     # Handle large file confirm
+#     for key, value in response.cookies.items():
+#         if key.startswith("download_warning"):
+#             params = {
+#                 "id": MODEL_URL.split("id=")[-1],
+#                 "confirm": value
+#             }
+#             response = session.get(
+#                 "https://drive.google.com/uc?export=download",
+#                 params=params,
+#                 stream=True
+#             )
+#             break
+
+#     with open(MODEL_PATH, "wb") as f:
+#         for chunk in response.iter_content(1024 * 1024):
+#             if chunk:
+#                 f.write(chunk)
+
+#     print("✅ Model downloaded")
 
 
 # -------------------------------
