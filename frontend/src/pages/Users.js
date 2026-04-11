@@ -1,44 +1,34 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function Users() {
 
-  return (
+  const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState("");
 
+  useEffect(() => {
+    axios.get("/api/admin/users", { withCredentials: true })
+      .then(res => setUsers(res.data.users))
+      .catch(() => window.location.href = "/admin/login");
+  }, []);
+
+  const filtered = users.filter(u =>
+    u.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
     <div>
 
-      <h1>Users</h1>
-      <p>Manage registered users</p>
+      <input
+        placeholder="Search user..."
+        onChange={(e) => setSearch(e.target.value)}
+        className="mb-4 p-2 border"
+      />
 
-      <div className="table">
-
-        <table>
-
-          <thead>
-
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Registration Date</th>
-              <th>Time</th>
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            <tr>
-              <td colSpan="4" className="empty">
-                No users found
-              </td>
-            </tr>
-
-          </tbody>
-
-        </table>
-
-      </div>
+      {filtered.map(u => (
+        <div key={u._id}>{u.name}</div>
+      ))}
 
     </div>
-
   );
 }

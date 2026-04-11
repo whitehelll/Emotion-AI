@@ -141,7 +141,7 @@ export async function signup(req, res) {
   try {
 
     const { name, email, password } = req.body;
-    console.log(req.body);
+
     // Validate fields
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -149,14 +149,13 @@ export async function signup(req, res) {
       });
     }
 
-    // Password length check
     if (password.length < 6) {
       return res.status(400).json({
         message: "Password must be at least 6 characters"
       });
     }
 
-    // Check if user exists
+    // Check existing user
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -165,8 +164,13 @@ export async function signup(req, res) {
       });
     }
 
+    // ✅ Assign role from ENV
+    const role =
+      email === process.env.ADMIN_EMAIL
+        ? "admin"
+        : "user";
 
-    // otp verification 
+    // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
 
     // Create user
@@ -174,48 +178,18 @@ export async function signup(req, res) {
       name,
       email,
       password,
-
-      emailOTP:otp,
-      otpExpires:Date.now()+300000
+      role,
+      emailOTP: otp,
+      otpExpires: Date.now() + 300000
     });
 
+    // Send OTP email
+    await sendOTP(email, otp);
 
-    await sendOTP(email,otp);
-
-    res.json({
+    // ✅ Only ONE response
+    res.status(201).json({
       message: "OTP Sent",
       email
-    })
-
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { userID: newUser._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-
-    // Set JWT Cookie (React Compatible)
-    res.cookie("jwt", token, {
-      httpOnly: true,
-      secure: false,          // local development
-      sameSite: "lax",        // allows React requests
-      path: "/",              // important
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      domain:"localhost"
-
-    });
-
-
-    // Send response
-    res.status(201).json({
-      success: true,
-      user: {
-        _id: newUser._id,
-        name: newUser.name,
-        email: newUser.email
-      }
     });
 
   } catch (error) {
@@ -331,7 +305,7 @@ export async function signin(req, res) {
     // Set Cookie
     res.cookie("jwt", token, {
       httpOnly: true,
-      secure: false,
+      secure: true,
       sameSite: "lax",
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000
