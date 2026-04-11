@@ -5,6 +5,8 @@ from tensorflow.keras.models import load_model
 import base64
 import os
 import requests
+import os
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
 emotion_bp = Blueprint("emotion", __name__)
 
@@ -22,18 +24,23 @@ def download_model():
     if os.path.exists(MODEL_PATH):
         return
 
-    print("⬇️ Downloading model from Google Drive...")
+    print("⬇️ Downloading model...")
 
     session = requests.Session()
-
     response = session.get(MODEL_URL, stream=True)
-    
-    # Handle large file confirmation
+
+    # handle large file confirm
     for key, value in response.cookies.items():
         if key.startswith("download_warning"):
-            confirm_token = value
-            params = {"id": MODEL_URL.split("id=")[-1], "confirm": confirm_token}
-            response = session.get("https://drive.google.com/uc?export=download", params=params, stream=True)
+            params = {
+                "id": MODEL_URL.split("id=")[-1],
+                "confirm": value
+            }
+            response = session.get(
+                "https://drive.google.com/uc?export=download",
+                params=params,
+                stream=True
+            )
             break
 
     with open(MODEL_PATH, "wb") as f:
@@ -41,8 +48,7 @@ def download_model():
             if chunk:
                 f.write(chunk)
 
-    print("✅ Model downloaded successfully")
-
+    print("✅ Model downloaded")
 # ✅ Lazy loading
 model = None
 
@@ -50,8 +56,14 @@ def get_model():
     global model
     if model is None:
         download_model()
+
+        if not os.path.exists(MODEL_PATH):
+            raise Exception("Model file missing after download")
+
+        print("📦 Loading model...")
         model = load_model(MODEL_PATH, compile=False)
         print("✅ Model loaded")
+
     return model
 
 
@@ -98,4 +110,7 @@ def detect_emotion():
         })
 
     except Exception as e:
+        import traceback
+        print("🔥 EMOTION ERROR:")
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
