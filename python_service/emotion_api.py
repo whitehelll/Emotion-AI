@@ -4,89 +4,36 @@ import numpy as np
 from tensorflow.keras.models import load_model
 import base64
 import os
-import requests
-import gdown
-
 
 # 🔥 Disable TensorFlow optimizations (stability)
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
 emotion_bp = Blueprint("emotion", __name__)
 
-MODEL_PATH = "emotion_model.h5"
-MODEL_URL = "https://drive.google.com/uc?export=download&id=1l2d9B1LeGDXlia1NwONu5TzGGDIIK3Wv"
+# ✅ Correct model path (works in Docker + local)
+MODEL_PATH = os.path.join(os.getcwd(), "emotion_model.h5")
 
 emotion_labels = ['Angry', 'Disgust', 'Happy', 'Neutral', 'Sad', 'Surprise']
 
 # -------------------------------
-# Download Model (Google Drive)
-
-
-def download_model():
-    if os.path.exists(MODEL_PATH):
-        print("✅ Model already exists")
-        return
-
-    print("⬇️ Downloading model via gdown...")
-
-    url = "https://drive.google.com/uc?id=1l2d9B1LeGDXlia1NwONu5TzGGDIIK3Wv"
-    gdown.download(url, MODEL_PATH, quiet=False)
-
-    size = os.path.getsize(MODEL_PATH) / (1024 * 1024)
-    print(f"📦 Model size: {size:.2f} MB")
-
-    if size < 50:
-        raise Exception("❌ Model corrupted (download failed)")
-
-
-# -------------------------------
-# def download_model():
-#     if os.path.exists(MODEL_PATH):
-#         return
-
-#     print("⬇️ Downloading model...")
-
-#     session = requests.Session()
-#     response = session.get(MODEL_URL, stream=True)
-
-#     # Handle large file confirm
-#     for key, value in response.cookies.items():
-#         if key.startswith("download_warning"):
-#             params = {
-#                 "id": MODEL_URL.split("id=")[-1],
-#                 "confirm": value
-#             }
-#             response = session.get(
-#                 "https://drive.google.com/uc?export=download",
-#                 params=params,
-#                 stream=True
-#             )
-#             break
-
-#     with open(MODEL_PATH, "wb") as f:
-#         for chunk in response.iter_content(1024 * 1024):
-#             if chunk:
-#                 f.write(chunk)
-
-#     print("✅ Model downloaded")
-
-
-# -------------------------------
-# Lazy Load Model
+# Load Model (NO DOWNLOAD)
 # -------------------------------
 model = None
 
 def get_model():
     global model
     if model is None:
-        download_model()
+        print("📦 Loading model from Docker...")
+
+        # Debug logs (VERY IMPORTANT for Render)
+        print("📂 Current directory:", os.getcwd())
+        print("📂 Files:", os.listdir())
 
         if not os.path.exists(MODEL_PATH):
-            raise Exception("Model file missing after download")
+            raise Exception(f"❌ Model not found at {MODEL_PATH}")
 
-        print("📦 Loading model...")
         model = load_model(MODEL_PATH, compile=False)
-        print("✅ Model loaded")
+        print("✅ Model loaded successfully")
 
     return model
 
@@ -104,7 +51,7 @@ def detect_emotion():
     try:
         img_b64 = data["image"]
 
-        # Remove prefix if exists
+        # Remove base64 prefix if present
         if "," in img_b64:
             img_b64 = img_b64.split(",")[1]
 
@@ -130,7 +77,7 @@ def detect_emotion():
 
         (x, y, w, h) = faces[0]
 
-        # 🔥 Add padding (better accuracy)
+        # 🔥 Add padding
         pad = 10
         x1, y1 = max(0, x - pad), max(0, y - pad)
         x2, y2 = min(frame.shape[1], x + w + pad), min(frame.shape[0], y + h + pad)
@@ -140,7 +87,7 @@ def detect_emotion():
         # Convert to RGB
         face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
 
-        # 🔥 Histogram equalization (better contrast)
+        # 🔥 Histogram equalization
         yuv = cv2.cvtColor(face, cv2.COLOR_RGB2YUV)
         yuv[:, :, 0] = cv2.equalizeHist(yuv[:, :, 0])
         face = cv2.cvtColor(yuv, cv2.COLOR_YUV2RGB)
