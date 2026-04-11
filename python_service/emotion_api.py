@@ -5,21 +5,20 @@ from tensorflow.keras.models import load_model
 import base64
 import os
 import requests
-import os
+
+# 🔥 Disable TensorFlow optimizations (stability)
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
 emotion_bp = Blueprint("emotion", __name__)
 
 MODEL_PATH = "emotion_model.h5"
-
-# 🔥 PUT YOUR GOOGLE DRIVE DIRECT LINK HERE
 MODEL_URL = "https://drive.google.com/uc?export=download&id=1l2d9B1LeGDXlia1NwONu5TzGGDIIK3Wv"
 
 emotion_labels = ['Angry', 'Disgust', 'Happy', 'Neutral', 'Sad', 'Surprise']
 
-# ✅ Download model if not exists
-import requests
-
+# -------------------------------
+# Download Model (Google Drive)
+# -------------------------------
 def download_model():
     if os.path.exists(MODEL_PATH):
         return
@@ -29,7 +28,7 @@ def download_model():
     session = requests.Session()
     response = session.get(MODEL_URL, stream=True)
 
-    # handle large file confirm
+    # Handle large file confirm
     for key, value in response.cookies.items():
         if key.startswith("download_warning"):
             params = {
@@ -49,7 +48,11 @@ def download_model():
                 f.write(chunk)
 
     print("✅ Model downloaded")
-# ✅ Lazy loading
+
+
+# -------------------------------
+# Lazy Load Model
+# -------------------------------
 model = None
 
 def get_model():
@@ -67,6 +70,9 @@ def get_model():
     return model
 
 
+# -------------------------------
+# Emotion Detection Route
+# -------------------------------
 @emotion_bp.route("/detect-emotion", methods=["POST"])
 def detect_emotion():
     data = request.get_json()
@@ -77,15 +83,22 @@ def detect_emotion():
     try:
         img_b64 = data["image"]
 
+        # Remove prefix if exists
         if "," in img_b64:
             img_b64 = img_b64.split(",")[1]
 
+        # Decode image
         img_bytes = base64.b64decode(img_b64)
         npimg = np.frombuffer(img_bytes, np.uint8)
         frame = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
 
+        if frame is None:
+            return jsonify({"error": "Image decode failed"}), 400
+
+        # Convert to grayscale
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
+        # Face detection
         detector = cv2.CascadeClassifier(
             cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
         )
@@ -95,12 +108,30 @@ def detect_emotion():
             return jsonify({"emotion": "No Face Detected", "confidence": 0})
 
         (x, y, w, h) = faces[0]
-        face = frame[y:y+h, x:x+w]
 
+        # 🔥 Add padding (better accuracy)
+        pad = 10
+        x1, y1 = max(0, x - pad), max(0, y - pad)
+        x2, y2 = min(frame.shape[1], x + w + pad), min(frame.shape[0], y + h + pad)
+
+        face = frame[y1:y2, x1:x2]
+
+        # Convert to RGB
+        face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
+
+        # 🔥 Histogram equalization (better contrast)
+        yuv = cv2.cvtColor(face, cv2.COLOR_RGB2YUV)
+        yuv[:, :, 0] = cv2.equalizeHist(yuv[:, :, 0])
+        face = cv2.cvtColor(yuv, cv2.COLOR_YUV2RGB)
+
+        # Resize
         face = cv2.resize(face, (224, 224))
+
+        # Normalize
         face = face.astype("float32") / 255.0
         face = np.expand_dims(face, axis=0)
 
+        # Predict
         pred = get_model().predict(face, verbose=0)[0]
         idx = np.argmax(pred)
 
