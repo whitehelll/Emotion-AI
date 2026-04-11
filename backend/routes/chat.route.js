@@ -61,9 +61,7 @@ router.post("/newchat", async (req, res) => {
 // ------------------------
 router.get("/chat_descriptions", async (req, res) => {
   try {
-    const response = await axios.get(`${FLASK_BASE_URL}/chat_descriptions`, {
-      params: { userId: req.user._id },
-    });
+    const response = await axios.get(`${FLASK_BASE_URL}/chat_descriptions`);
 
     res.json(response.data);
   } catch (error) {

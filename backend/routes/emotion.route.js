@@ -5,7 +5,11 @@ import { protectRoute } from "../middleware/auth.middleware.js";
 import Emotion from "../models/Emotion.js";
 import { protectAdmin } from "../middleware/adminAuth.middleware.js";
 
+
+const FLASK_EMOTION_URL = process.env.FLASK_EMOTION_URL;
+
 const router = express.Router();
+
 
 /*
 --------------------------------
