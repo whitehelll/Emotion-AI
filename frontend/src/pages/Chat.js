@@ -8,7 +8,10 @@ axios.defaults.withCredentials = true;
 const Chat = () => {
   const webcamRef = useRef(null);
 
-  const BASE_URL = "http://localhost:8080/api";
+  const BASE_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:8080/api"
+    : "/api";
 
   const [emotionData, setEmotionData] = useState({
     emotion: "Neutral",

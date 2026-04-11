@@ -28,7 +28,7 @@ router.post("/emotion", protectRoute, async (req, res) => {
 
     // Call Flask AI model
     const response = await axios.post(
-      "http://127.0.0.1:5001/detect-emotion",
+      `${FLASK_EMOTION_URL}/detect-emotion`,
       { image: imageBase64 }
     );
 
