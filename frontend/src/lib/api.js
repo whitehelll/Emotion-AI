@@ -16,16 +16,17 @@ export const logout = async ()=>{
   return response.data;
 }
 
-export const getAuthUser = async ()=>{
-      try {
-        const res = await axiosInstance.get("/auth/me");
-        return res.data;
-      } catch (error) {
-        console.log("Error in getAuthUser:", error);
-        return null;
-      }
-      
+export const getAuthUser = async () => {
+  try {
+    const res = await axiosInstance.get("/auth/me");
+    return res.data;
+  } catch (error) {
+    if (error.response?.status === 401) {
+      return null; // ✅ expected when not logged as user
     }
+    throw error;
+  }
+};
 
 
 

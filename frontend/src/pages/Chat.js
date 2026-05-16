@@ -2,8 +2,16 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import Webcam from "react-webcam";
 import axios from "axios";
 
+// ✅ FIX: send cookies with every request
+axios.defaults.withCredentials = true;
+
 const Chat = () => {
   const webcamRef = useRef(null);
+
+  const BASE_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:8080/api"
+    : "/api";
 
   const [emotionData, setEmotionData] = useState({
     emotion: "Neutral",
@@ -14,30 +22,82 @@ const Chat = () => {
   const [input, setInput] = useState("");
   const [autoCapture, setAutoCapture] = useState(false);
 
+  const [chatList, setChatList] = useState([]);
+  const [currentChatId, setCurrentChatId] = useState(null);
 
-  /* Capture Image */
+  /* ---------------- LOAD CHAT LIST ---------------- */
+  const loadChatList = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/chat_descriptions`);
+      setChatList(res.data.chats || []);
+    } catch (err) {
+      console.log("Chat list error:", err);
+    }
+  };
+
+  /* ---------------- LOAD CHAT ---------------- */
+  const loadChat = async (id) => {
+    try {
+      const res = await axios.get(`${BASE_URL}/chat/${id}`);
+
+      const formatted = res.data.chat.messages.map((m) => ({
+        sender: m.role === "user" ? "user" : "bot",
+        text: m.content,
+      }));
+
+      setMessages(formatted);
+      setCurrentChatId(id);
+    } catch (err) {
+      console.log("Load chat error:", err);
+    }
+  };
+
+  /* ---------------- NEW CHAT ---------------- */
+  const startNewChat = async () => {
+    try {
+      await axios.post(`${BASE_URL}/newchat`);
+      setMessages([]);
+      setCurrentChatId(null);
+      loadChatList();
+    } catch (err) {
+      console.log("New chat error:", err);
+    }
+  };
+
+  /* ---------------- LOAD CURRENT HISTORY ---------------- */
+  const loadCurrentHistory = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/history`);
+
+      const formatted = res.data.history.map((m) => ({
+        sender: m.role === "user" ? "user" : "bot",
+        text: m.content,
+      }));
+
+      setMessages(formatted);
+    } catch (err) {
+      console.log("History error:", err);
+    }
+  };
+
+  /* ---------------- Capture Image ---------------- */
   const captureImage = useCallback(() => {
     const screenshot = webcamRef.current?.getScreenshot();
     if (screenshot) detectEmotion(screenshot);
   }, []);
 
-
-  /* Auto Capture */
+  /* ---------------- Auto Capture ---------------- */
   useEffect(() => {
     if (!autoCapture) return;
-
     const interval = setInterval(captureImage, 3000);
     return () => clearInterval(interval);
-
   }, [autoCapture, captureImage]);
 
-
-  /* Emotion API */
+  /* ---------------- Emotion API ---------------- */
   const detectEmotion = async (base64Image) => {
     try {
-
       const res = await axios.post(
-        "http://localhost:8080/api/emotion",
+        `${BASE_URL}/emotion`,
         { imageBase64: base64Image }
       );
 
@@ -45,16 +105,13 @@ const Chat = () => {
         emotion: res.data.emotion || "Neutral",
         confidence: Math.round(res.data.confidence || 0),
       });
-
     } catch (error) {
-      console.log("Emotion API emotion error:", error);
+      console.log("Emotion API error:", error);
     }
   };
 
-
-  /* Send Message */
+  /* ---------------- Send Message ---------------- */
   const sendMessage = async () => {
-
     if (!input.trim()) return;
 
     const userText = input.trim();
@@ -62,38 +119,28 @@ const Chat = () => {
 
     setMessages((prev) => [
       ...prev,
-      { sender: "user", text: userText }
+      { sender: "user", text: userText },
     ]);
 
     try {
-
-      const res = await axios.post(
-        "http://localhost:8080/api/chat",
-        {
-          message: userText,
-          emotion: emotionData.emotion,
-        },
-        {
-          withCredentials: true,
-        },
-      );
+      const res = await axios.post(`${BASE_URL}/chat`, {
+        message: userText,
+        emotion: emotionData.emotion,
+      });
 
       setMessages((prev) => [
         ...prev,
-        { sender: "bot", text: res.data.reply || "No response" }
+        { sender: "bot", text: res.data.reply || "No response" },
       ]);
 
+      loadChatList();
     } catch {
-
       setMessages((prev) => [
         ...prev,
-        { sender: "bot", text: "Server error" }
+        { sender: "bot", text: "Server error" },
       ]);
-
     }
-
   };
-
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -102,38 +149,60 @@ const Chat = () => {
     }
   };
 
+  /* ---------------- INIT ---------------- */
+  useEffect(() => {
+    loadChatList();
+  }, []);
 
   return (
-
     <div className="flex w-full h-[calc(100vh-70px)] overflow-hidden bg-[#0c0c0e] text-white">
-
 
       {/* Sidebar */}
       <div className="w-[240px] border-r border-gray-800 p-4 flex flex-col flex-shrink-0">
 
-        <h2 className="text-xl font-semibold mb-4">
-          Chats
-        </h2>
+        <h2 className="text-xl font-semibold mb-4">Chats</h2>
 
-        <button className="w-full bg-white text-black py-2 rounded-md font-medium hover:bg-gray-200">
+        <button
+          onClick={startNewChat}
+          className="w-full bg-white text-black py-2 rounded-md font-medium hover:bg-gray-200"
+        >
           + New Chat
         </button>
 
+        <button
+          onClick={loadCurrentHistory}
+          className="w-full mt-2 border border-gray-600 py-2 rounded-md text-sm"
+        >
+          Load Current
+        </button>
+
+        <div className="mt-4 overflow-y-auto flex-1">
+          {chatList.map((chat) => (
+            <div
+              key={chat.id}
+              onClick={() => loadChat(chat.id)}
+              className={`p-2 text-sm cursor-pointer rounded ${
+                currentChatId === chat.id
+                  ? "bg-gray-700"
+                  : "hover:bg-gray-800"
+              }`}
+            >
+              {chat.description}
+            </div>
+          ))}
+        </div>
+
         <p className="text-sm text-gray-500 mt-4">
-          Single session demo mode
+          Multi-session enabled
         </p>
 
       </div>
 
-
-
       {/* Main Panel */}
       <div className="flex-1 flex flex-col p-4 gap-4 overflow-hidden">
 
-
-        {/* Emotion Section (Fixed Height) */}
+        {/* Emotion Section */}
         <div className="flex gap-8 flex-shrink-0">
-
 
           <Webcam
             audio={false}
@@ -142,16 +211,12 @@ const Chat = () => {
             className="rounded-lg border border-gray-700 w-[320px]"
           />
 
-
           <div>
-
             <h1 className="text-xl font-semibold mb-3">
               Emotion Detection
             </h1>
 
-
             <div className="bg-gray-900 p-4 rounded-lg border border-gray-700">
-
               <p>
                 Emotion:
                 <span className="ml-2 px-2 py-1 bg-blue-600 rounded text-sm">
@@ -162,12 +227,9 @@ const Chat = () => {
               <p className="mt-2">
                 Confidence: {emotionData.confidence}%
               </p>
-
             </div>
 
-
             <div className="mt-4 flex gap-3">
-
               <button
                 onClick={captureImage}
                 className="px-4 py-2 border border-gray-600 rounded hover:bg-gray-800"
@@ -175,33 +237,24 @@ const Chat = () => {
                 Capture Once
               </button>
 
-
               <button
                 onClick={() => setAutoCapture(!autoCapture)}
                 className="px-4 py-2 border border-gray-600 rounded hover:bg-gray-800"
               >
                 {autoCapture ? "Stop Auto" : "Start Auto"}
               </button>
-
             </div>
-
           </div>
-
         </div>
 
-
-
-        {/* Chat Messages (Scrollable Only Here) */}
+        {/* Chat Messages */}
         <div className="flex-1 overflow-y-auto border border-gray-800 rounded-lg p-4 bg-gray-950">
-
-
           {messages.length === 0 ? (
             <p className="text-gray-500">
               No messages yet. Start the conversation.
             </p>
           ) : (
             messages.map((msg, index) => (
-
               <div
                 key={index}
                 className={`p-3 my-2 max-w-[70%] rounded-lg ${
@@ -212,17 +265,12 @@ const Chat = () => {
               >
                 {msg.text}
               </div>
-
             ))
           )}
-
         </div>
 
-
-
-        {/* Input Bar (Fixed Bottom) */}
+        {/* Input */}
         <div className="flex gap-3 flex-shrink-0">
-
 
           <textarea
             className="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-3 resize-none"
@@ -232,7 +280,6 @@ const Chat = () => {
             onKeyDown={handleKeyDown}
           />
 
-
           <button
             onClick={sendMessage}
             className="px-6 bg-white text-black rounded-lg font-semibold hover:bg-gray-200"
@@ -240,15 +287,10 @@ const Chat = () => {
             Send
           </button>
 
-
         </div>
 
-
       </div>
-
-
     </div>
-
   );
 };
 

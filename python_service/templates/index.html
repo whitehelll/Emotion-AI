@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Emotion Chatbot</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #202123;
+            color: white;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .new-chat {
+            background: #343541;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .chat-item {
+            padding: 10px;
+            border-bottom: 1px solid #444;
+            cursor: pointer;
+        }
+
+        .chat-item:hover {
+            background: #343541;
+        }
+
+        /* Chat Area */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f5f5f5;
+        }
+
+        .message {
+            margin: 10px 0;
+            max-width: 60%;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .user {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+        }
+
+        .bot {
+            background: #ddd;
+        }
+
+        .input-box {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+        }
+
+        button {
+            padding: 10px;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="new-chat" onclick="startNewChat()">+ New Chat</div>
+
+    <h3>History</h3>
+    <div id="historyList"></div>
+</div>
+
+<!-- Chat Area -->
+<div class="chat-container">
+
+    <div class="messages" id="messages"></div>
+
+    <div class="input-box">
+        <input type="text" id="emotion" placeholder="Enter emotion (sad/happy)" />
+        <input type="text" id="messageInput" placeholder="Type message..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+</div>
+
+<script>
+
+let currentChatId = null;
+
+// -----------------------
+// Load History Sidebar
+// -----------------------
+
+async function loadHistory() {
+    const res = await fetch("/chat_descriptions");
+    const data = await res.json();
+
+    const historyDiv = document.getElementById("historyList");
+    historyDiv.innerHTML = "";
+
+    data.chats.forEach(chat => {
+        const div = document.createElement("div");
+        div.className = "chat-item";
+        div.innerText = chat.description;
+
+        div.onclick = () => loadChat(chat.id);
+
+        historyDiv.appendChild(div);
+    });
+}
+
+
+// -----------------------
+// Load Chat by ID
+// -----------------------
+
+async function loadChat(id) {
+    currentChatId = id;
+
+    const res = await fetch(`/chat/${id}`);
+    const data = await res.json();
+
+    const messagesDiv = document.getElementById("messages");
+    messagesDiv.innerHTML = "";
+
+    data.chat.messages.forEach(msg => {
+        addMessage(msg.content, msg.role);
+    });
+}
+
+
+// -----------------------
+// Start New Chat
+// -----------------------
+
+async function startNewChat() {
+    await fetch("/newchat", { method: "POST" });
+
+    currentChatId = null;
+    document.getElementById("messages").innerHTML = "";
+
+    loadHistory();
+}
+
+
+// -----------------------
+// Send Message
+// -----------------------
+
+async function sendMessage() {
+    const messageInput = document.getElementById("messageInput");
+    const emotionInput = document.getElementById("emotion");
+
+    const message = messageInput.value;
+    const emotion = emotionInput.value || "neutral";
+
+    if (!message && !emotion) return;
+
+    // Show user message
+    if (message) addMessage(message, "user");
+
+    messageInput.value = "";
+
+    const res = await fetch("/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            message: message,
+            emotion: emotion
+        })
+    });
+
+    const data = await res.json();
+
+    addMessage(data.reply, "assistant");
+
+    loadHistory(); // update sidebar
+}
+
+
+// -----------------------
+// Add Message to UI
+// -----------------------
+
+function addMessage(text, role) {
+    const div = document.createElement("div");
+    div.className = "message " + (role === "user" ? "user" : "bot");
+    div.innerText = text;
+
+    document.getElementById("messages").appendChild(div);
+
+    // Auto scroll
+    div.scrollIntoView();
+}
+
+
+// -----------------------
+// Initial Load
+// -----------------------
+
+loadHistory();
+
+</script>
+
+</body>
+</html>
