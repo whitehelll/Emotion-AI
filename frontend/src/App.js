@@ -1,28 +1,33 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
+import About from "./pages/About";
+import AdminLogin from "./pages/AdminLogin";
+import AdminSignup from "./pages/AdminSignup";
+import Analytics from "./pages/Analytics";
+import Chat from "./pages/Chat";
+import Dashboard from "./pages/Dashboard";
+import ForgotPassword from "./pages/ForgotPassword";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import SignUp from "./pages/SignUp";
-import Onboarding from "./pages/OnBoarding";
-import StartChat from "./pages/StartChat";
-import Chat from "./pages/Chat";
-import DashboardLayout from "./component/DashboardLayout";
-import { useThemeStore } from "./store/useThemeStore.js";
-import Navbar from "./component/Navbar";
+import Users from "./pages/Users";
+import VerifyOTP from "./pages/VerifyOTP";
+
+
+
+
+
+import DashboardLayout from "./component/layout/DashboardLayout";
 import useAuthUser from "./hooks/useAuthUser";
-import Home from "./pages/Home";
-import VerifyOTP from "./pages/VerifyOTP.js";
-import About from "./pages/About.js"
-import Contact from "./pages/Contact.js" 
-import ForgotPassword from "./pages/ForgotPassword.js";
-import ResetPassword from "./pages/ResetPassword.js";
+import AdminRoute from "./routes/AdminRoute";
+
+
 
 const App = () => {
-
   const { isLoading, authUser } = useAuthUser();
-  const isOnboard = authUser?.isOnboard ?? false;
-  const { theme, setTheme } = useThemeStore();
-
+  
+  
 
   if (isLoading) {
     return (
@@ -33,105 +38,55 @@ const App = () => {
   }
 
   const isAuthenticated = Boolean(authUser);
-  console.log(authUser);
   
 
   return (
-    <div className="h-screen " data-theme={theme}>
-      <Navbar />
+    <div className="min-h-screen" >
+      {/* Hide navbar for admin */}
+      
+
       <Routes>
-        {/*Forgot Password*/}
 
+        {/* ================= PUBLIC ================= */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/about" element={<About />} />
+
+        {/* ================= AUTH ================= */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        {/* Landing */}
-        <Route path="/landing" element={<Landing />} />
+        {/* ================= ADMIN AUTH ================= */}
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/admin-signup" element={<AdminSignup />} />
 
-        {/* Home */}
+        {/* ================= USER ================= */}
+        
 
-        <Route
-          path="/"
-          element={
-            isAuthenticated && isOnboard ? (
-              <Home />
-            ) : (
-              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
-            )
-          }
-        />
-
-        {/* Login */}
-        <Route
-          path="/login"
-          element={
-            !isAuthenticated ? (
-              <Login />
-            ) : (
-              <Navigate to={isOnboard ? "/" : "/onboarding"} />
-            )
-          }
-        />
-
-        {/* Signup */}
-        <Route
-          path="/signup"
-          element={
-            !isAuthenticated ? (
-              <SignUp />
-            ) : (
-              <Navigate to={isOnboard ? "/" : "/onboarding"} />
-            )
-          }
-        />
-
-        {/* Onboarding */}
-
-        <Route path="/verify-otp" element={<VerifyOTP />} />
-
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-
-        {/* Onboarding */}
-        <Route
-          path="/onboarding"
-          element={
-            isAuthenticated ? (
-              !isOnboard ? (
-                <Onboarding />
-              ) : (
-                <Navigate to="/" />
-              )
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-
-        {/* Start Page */}
-        <Route
-          path="/dashboard"
-          element={
-            isAuthenticated && isOnboard ? (
-              <DashboardLayout />
-            ) : (
-              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
-            )
-          }
-        />
-
-        {/* Chat */}
         <Route
           path="/chat"
-          element={
-            isAuthenticated && isOnboard ? (
-              <Chat />
-            ) : (
-              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
-            )
-          }
+          element={isAuthenticated ? <Chat /> : <Navigate to="/login" />}
         />
+
+        {/* ================= ADMIN PANEL ================= */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <DashboardLayout />
+            </AdminRoute>
+          }
+        >
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="users" element={<Users />} />
+          <Route path="analytics" element={<Analytics />} />
+          
+        </Route>
+        {/* ================= FALLBACK ================= */}
+        <Route path="*" element={<Navigate to="/" />} />
+
       </Routes>
     </div>
   );
