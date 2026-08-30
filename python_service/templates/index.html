@@ -112,6 +112,11 @@
 
 <script>
 
+    const initialMessage = "{{ initial_reply }}";
+    if (initialMessage) {
+        addMessage(initialMessage, "assistant");// your chat UI function
+    }
+
 let currentChatId = null;
 
 // -----------------------

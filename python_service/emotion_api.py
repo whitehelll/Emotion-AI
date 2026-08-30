@@ -18,7 +18,7 @@ emotion_labels = ['Angry', 'Disgust', 'Happy', 'Neutral', 'Sad', 'Surprise']
 # -------------------------------
 # Load Model (NO DOWNLOAD)
 # -------------------------------
-model = None
+model = None                
 
 def get_model():
     global model
@@ -34,6 +34,7 @@ def get_model():
 
         model = load_model(MODEL_PATH, compile=False)
         print("✅ Model loaded successfully")
+        
 
     return model
 

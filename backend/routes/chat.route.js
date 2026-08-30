@@ -5,7 +5,7 @@ import { protectRoute } from "../middleware/auth.middleware.js";
 const router = express.Router();
 router.use(protectRoute);
 
-const FLASK_BASE_URL = process.env.FLASK_BASE_URL || "http://localhost:5000";
+const FLASK_BASE_URL ="http://localhost:5000";
 
 // ------------------------
 // CHAT
@@ -88,5 +88,8 @@ router.get("/chat/:chat_id", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch chat" });
   }
 });
+
+
+
 
 export default router;
